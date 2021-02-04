@@ -8,8 +8,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/dev/ref/settings/
 """
 import environ
-import datetime
 from datetime import timedelta
+
 # from corsheaders.defaults import default_headers
 # ROOT_DIR = /home/www/projects/broker
 ROOT_DIR = environ.Path(__file__) - 3
@@ -41,8 +41,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'django_filters',
     'django_extensions',
-    'djmoney',
-    # 'corsheaders',
+    # 'djmoney',
     # 'rest_framework.authtoken',
     'djoser',
     # 'rest_framework_simplejwt.token_blacklist',
@@ -63,7 +62,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',# middleware from django-cors-headers
+    'corsheaders.middleware.CorsMiddleware',  # middleware from django-cors-headers
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -71,23 +70,18 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-
 # DEBUG
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#debug
 DEBUG = env.bool('DEBUG')
 SECRET_KEY = env.str('SECRET_KEY')
-# RUNSERVERPLUS_SERVER_ADDRESS_PORT= env.str('RUNSERVERPLUS_SERVER_ADDRESS_PORT')
 # DOMAINS
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
 DOMAIN = env.str('DOMAIN')
-# USE IT'S CURRENCIES
-CURRENCIES = ('RUB','USD','EUR')
-# CURRENCIES = env.list('CURRENCIES')
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', )
 # EMAIL CONFIGURATION
 # ------------------------------------------------------------------------------
-EMAIL_HOST = env.str('EMAIL_HOST', default='mailhog')
-EMAIL_PORT = env.int('EMAIL_PORT', default='1025')
+EMAIL_HOST = env.str('EMAIL_HOST', default='')
+EMAIL_PORT = env.int('EMAIL_PORT', default='587')
 EMAIL_HOST_USER = env.str('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD', default='')
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
@@ -125,7 +119,7 @@ DATABASES = {
 TIME_ZONE = 'UTC'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#language-code
-LANGUAGE_CODE = 'ru-ru'
+LANGUAGE_CODE = 'ru'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
 USE_I18N = True
@@ -203,7 +197,6 @@ TEMPLATES = [
     },
 ]
 
-
 # PASSWORD STORAGE SETTINGS
 # ------------------------------------------------------------------------------
 # See https://docs.djangoproject.com/en/dev/ref/settings/#password-hashers
@@ -228,7 +221,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # AUTHENTICATION CONFIGURATION
 # ------------------------------------------------------------------------------
 AUTHENTICATION_BACKENDS = [
-    
+
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -236,40 +229,52 @@ AUTHENTICATION_BACKENDS = [
 # Select the correct user model
 AUTH_USER_MODEL = 'users.User'
 
-
-
 # DJANGO REST FRAMEWORK
 # ------------------------------------------------------------------------------
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    # 'PAGE_SIZE': 10,
     'DEFAULT_AUTHENTICATION_CLASSES': (
         # Json Web Token Authentication
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         # Token Base Authentication
         # 'rest_framework.authentication.TokenAuthentication',
-        # 'rest_framework.authentication.BasicAuthentication',
-        # 'rest_framework.authentication.SessionAuthentication',
     ),
     # 'DEFAULT_PAGINATION_CLASS':
     #     'rest_framework_json_api.pagination.PageNumberPagination',
+    # 'PAGE_SIZE': 25,
     # 'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DATETIME_FORMAT': "%d.%m.%Y %H:%M:%S",
 }
 
 SIMPLE_JWT = {
-   'AUTH_HEADER_TYPES': ('JWT',),
-}
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
 
-# JWT_AUTH = {
-#     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=2),
-#     'JWT_ALLOW_REFRESH': True,
-#     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7)  # default
-# }
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+
+    'AUTH_HEADER_TYPES': ('JWT',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+
+    'JTI_CLAIM': 'jti',
+
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+}
 
 # https://www.youtube.com/watch?v=CC3uxnYYdMM&list=PLJRGQoqpRwdfoa9591BcUS6NmMpZcvFsM&index=3&t=2s
 DJOSER = {
@@ -295,108 +300,74 @@ DJOSER = {
     # 'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
 }
 
-# REST_FRAMEWORK = {
-#     'UPLOADED_FILES_USE_URL': False,
-#     'DEFAULT_AUTHENTICATION_CLASSES': [
-#         'rest_framework.authentication.SessionAuthentication',
-#         'rest_framework.authentication.BasicAuthentication'
-#     ],
-#     'DEFAULT_PERMISSION_CLASSES': [],
-#     'DEFAULT_PARSER_CLASSES': [
-#         'rest_framework.parsers.JSONParser',
-#         'rest_framework.parsers.FormParser',
-#         'rest_framework.parsers.MultiPartParser',
-#         'rest_framework.parsers.FileUploadParser'
-#     ]
-# }
+# if not DEBUG:
+#     # raven sentry client
+#     # See https://docs.sentry.io/clients/python/integrations/django/
+#     INSTALLED_APPS += ['raven.contrib.django.raven_compat']
+#     RAVEN_MIDDLEWARE = ['raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware']
+#     MIDDLEWARE = RAVEN_MIDDLEWARE + MIDDLEWARE
+#
+#     # Host adress for right auth
+#     # CORS_ORIGIN_WHITELIST = [
+#     #     'http://10.20.2.19',
+#     # ]
+#     # CORS_ALLOW_HEADERS = list(default_headers) + [
+#     #     'content-type',
+#     # ]
+#
+#     # Sentry Configuration
+#     SENTRY_DSN = env.str('SENTRY_DSN')
+#     SENTRY_CLIENT = 'raven.contrib.django.raven_compat.DjangoClient'
+#     LOGGING = {
+#         'version': 1,
+#         'disable_existing_loggers': True,
+#         'root': {
+#             'level': 'WARNING',
+#             'handlers': ['sentry'],
+#         },
+#         'formatters': {
+#             'verbose': {
+#                 'format': '%(levelname)s %(asctime)s %(module)s '
+#                           '%(process)d %(thread)d %(message)s'
+#             },
+#         },
+#         'handlers': {
+#             'sentry': {
+#                 'level': 'ERROR',
+#                 'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+#             },
+#             'console': {
+#                 'level': 'DEBUG',
+#                 'class': 'logging.StreamHandler',
+#                 'formatter': 'verbose'
+#             }
+#         },
+#         'loggers': {
+#             'django.db.backends': {
+#                 'level': 'ERROR',
+#                 'handlers': ['console'],
+#                 'propagate': False,
+#             },
+#             'raven': {
+#                 'level': 'DEBUG',
+#                 'handlers': ['console'],
+#                 'propagate': False,
+#             },
+#             'sentry.errors': {
+#                 'level': 'DEBUG',
+#                 'handlers': ['console'],
+#                 'propagate': False,
+#             },
+#             'django.security.DisallowedHost': {
+#                 'level': 'ERROR',
+#                 'handlers': ['console', 'sentry'],
+#                 'propagate': False,
+#             },
+#         },
+#     }
+#
+#     RAVEN_CONFIG = {
+#         'DSN': SENTRY_DSN
+#     }
+# else:
 
-if not DEBUG:
-    # raven sentry client
-    # See https://docs.sentry.io/clients/python/integrations/django/
-    INSTALLED_APPS += ['raven.contrib.django.raven_compat']
-    RAVEN_MIDDLEWARE = ['raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware']
-    MIDDLEWARE = RAVEN_MIDDLEWARE + MIDDLEWARE
-
-    # Host adress for right auth
-    # CORS_ORIGIN_WHITELIST = [
-    #     'http://10.20.2.19',
-    # ]
-    # CORS_ALLOW_HEADERS = list(default_headers) + [
-    #     'content-type',
-    # ]
-
-    # Sentry Configuration
-    SENTRY_DSN = env.str('SENTRY_DSN')
-    SENTRY_CLIENT = 'raven.contrib.django.raven_compat.DjangoClient'
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': True,
-        'root': {
-            'level': 'WARNING',
-            'handlers': ['sentry'],
-        },
-        'formatters': {
-            'verbose': {
-                'format': '%(levelname)s %(asctime)s %(module)s '
-                          '%(process)d %(thread)d %(message)s'
-            },
-        },
-        'handlers': {
-            'sentry': {
-                'level': 'ERROR',
-                'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
-            },
-            'console': {
-                'level': 'DEBUG',
-                'class': 'logging.StreamHandler',
-                'formatter': 'verbose'
-            }
-        },
-        'loggers': {
-            'django.db.backends': {
-                'level': 'ERROR',
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'raven': {
-                'level': 'DEBUG',
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'sentry.errors': {
-                'level': 'DEBUG',
-                'handlers': ['console'],
-                'propagate': False,
-            },
-            'django.security.DisallowedHost': {
-                'level': 'ERROR',
-                'handlers': ['console', 'sentry'],
-                'propagate': False,
-            },
-        },
-    }
-
-    RAVEN_CONFIG = {
-        'DSN': SENTRY_DSN
-    }
-else:
-    # CorsHeaders settings from django-cors-headers
-    # CORS_ORIGIN_WHITELIST = [
-    #     "http://10.20.2.19:8000"
-    # ]
-    CORS_ORIGIN_ALLOW_ALL = True
-    LOGGING = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "filters": {"require_debug_false": {"()": "django.utils.log.RequireDebugFalse"}},
-        "handlers": {
-            "mail_admins": {
-                "level": "ERROR",
-                "filters": ["require_debug_false"],
-                "class": "django.utils.log.AdminEmailHandler",
-            }
-        },
-        "loggers": {
-            "django.request": {"handlers": ["mail_admins"], "level": "ERROR", "propagate": True}
-        },
-    }
