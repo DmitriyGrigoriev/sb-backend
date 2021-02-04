@@ -47,7 +47,7 @@ class ServiceAdmin(TemplateAdminModel):
     search_fields = ('code',)
     list_filter = [
         'code', 'service_type__code', 'unit_of_measure__code',
-        'vat_posting_group__code', 'blocked'
+        'vat_posting_group__code', 'external_service_code', 'blocked'
     ]
     ordering = ('-created',)
     form = ServiceModelAdminForm
@@ -57,7 +57,13 @@ admin.site.register(Service, ServiceAdmin)
 
 @admin.register(ServicePrice)
 class ServicePriceAdmin(TemplateAdminModel):
-    pass
+    list_display = [
+        'service_code', 'unit_price', 'start_date',
+    ]
+    search_fields = ('service_code',)
+    list_filter = [
+        'service_code',
+    ]
 
 
 @admin.register(VatPostingGroup)
