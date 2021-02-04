@@ -3,51 +3,44 @@ import typing
 from typing import Optional, TypeVar
 from returns.pipeline import is_successful
 from returns.methods import unwrap_or_failure
-from returns.result import Result, Failure, safe
+from returns.result import safe
 from django.utils.translation import ugettext_lazy as _
 from .exceptions import ParameterTypeError, ParameterValueError
 from ...settings.models import NoSeriesLine
 
 A = TypeVar('A', str, datetime.date)
 
-class HandleError:
-    status: str = ''
+class ErrorHandler:
+    status: str = '400'
     message: str = ''
-
-    def __init__(self) -> None:
-        self.status = '400'
-        self.message = ''
 
     def clear_error(self):
         self.status = ''
         self.message = ''
 
-    def process_exception(self, failure):
-        return self.fail(failure)
+    def process_exception(self, exception: Exception):
+        self.clear_error()
+        raise self.fail(exception)
 
-    def serialize_error(self, status, failure):
-        message = unwrap_or_failure(failure)
+    def serialize_error(self, status: str, exception: Exception):
+        message = exception.message
         self.status = status
         self.message = message
-        return failure
+        return exception
 
-    def fail(self, failure):
-        return self.serialize_error(400, failure)
+    def fail(self, exception: Exception):
+        return self.serialize_error(400, exception)
 
 
 class CheckTypeValues:
-    error: object
+    error_class: None
     success: bool = False
 
     def __init__(self) -> None:
-        self.error = HandleError()
-        self.success = False
         self.code = ''
         self.dt = typing.cast(datetime.date, None)
 
     def initialize(self, code, dt):
-        self.error.clear_error()
-        self.success = False
         self.code = code
         self.dt = dt
 
@@ -65,19 +58,17 @@ class CheckTypeValues:
             raise_error = ParameterTypeError(_('"Серия Номеров Дата начала" аргумент должнен быть датой'))
 
         if raise_error is not None:
-            # result = False
-            raise raise_error
+            self.error_class.process_exception(raise_error)
 
         return result
 
 
 class SeriesNoCreator(CheckTypeValues):
-    def __init__(self) -> None:
-        super(SeriesNoCreator, self).__init__()
+    error_class = ErrorHandler()
 
     @safe
     def generate(self, code: str = '', dt: datetime.date = None) -> bool:
-        success = False
+        self.success = False
         self.initialize(code, dt)
         result = self._check_type()
 
@@ -85,20 +76,23 @@ class SeriesNoCreator(CheckTypeValues):
             result = self.get_next_series_no()
             if not is_successful(result):
                 raise_error = unwrap_or_failure(result)
-                self.error.process_exception(
-                    Failure(raise_error.message)
-                )
+                self.error_class.process_exception(raise_error)
             else:
-                success = True
+                self.success = True
 
-        return success
+        return self.success
 
+    @safe
     def get_next_series_no(self) -> bool:
         record = NoSeriesLine.series_line.get_latest_code(
             code=self.code, starting_date=self.dt
         )
         new_series = self.__calculate_next_series_no(record)
         return new_series.strip() != ''
+
+
+    def save_series_no(self):
+        pass
 
     def __calculate_next_series_no(self, record: Optional['NoSeriesLine']) -> str:
         last_no_used: str = record.last_no_used
@@ -122,6 +116,7 @@ class SeriesNoCreator(CheckTypeValues):
             new_series = ''
 
         return new_series
+
 
     def __check_new_series_no(self, new_series: str, record: Optional['NoSeriesLine']) -> bool:
         if new_series >= record.ending_no:
