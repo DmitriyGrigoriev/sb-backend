@@ -1,6 +1,5 @@
 from djoser.serializers import UserSerializer
 from djoser.serializers import UserCreateSerializer
-from djoser.serializers import UserSerializer
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -15,7 +14,7 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = ('name',)
 
 
-class CreateNewUserSerializer(UserCreateSerializer):
+class UserCreateSerializer(UserCreateSerializer):
     registered_at = serializers.DateTimeField(format='%H:%M %d.%m.%Y', read_only=True)
 
     avatar = serializers.SerializerMethodField(read_only=True)
@@ -42,16 +41,17 @@ class CreateNewUserSerializer(UserCreateSerializer):
             'first_name',
             'middle_name',
             'last_name',
+            'short_name',
+            'full_name',
             'is_active',
             'registered_at'
         ]
 
 
-class GroupUserSerializer(UserSerializer):
+class UserSerializer(UserSerializer):
     groups = GroupSerializer(many=True)
     class Meta(UserSerializer.Meta):
         model = User
         fields = ('id', 'email', 'groups')
 
         read_only_fields = tuple('email, groups')
-
