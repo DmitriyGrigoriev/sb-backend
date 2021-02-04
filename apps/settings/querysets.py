@@ -20,10 +20,7 @@ class NoSeriesLineQuerySet(models.QuerySet):
         series_no_id:int  = self.get_series_no_id_from_code(code)
         if series_no_id < 0:
             raise ParameterValueError(_(f'Не настроена Серия Номеров {code} на дату {starting_date}'))
-        # if series_no_id < 0:
-        #     raise ParameterValueError(
-        #         _(f'Не настроена Серия Номеров {code} на дату {starting_date}')
-        #     )
+
         return self.model.objects.filter(
             series_no_id=series_no_id,
             starting_date__lte=starting_date,
