@@ -1,14 +1,14 @@
 from django.db import models
 from common.models import TemplateModel
 from django.utils.translation import ugettext_lazy as _
-
-from djmoney.models.fields import MoneyField
-from djmoney.models.validators import MinMoneyValidator
+from django.core.validators import MinValueValidator
+# from djmoney.models.fields import MoneyField
+# from djmoney.models.validators import MinMoneyValidator
 from common.constants import (
     MAX_DIGITS,
     MAX_DECIMAL,
     MAX_CURRENCY_DECIMAL,
-    DEFAULT_CURRENCY,
+    # DEFAULT_CURRENCY,
 )
 
 from .managers import (
@@ -100,13 +100,13 @@ class Service(TemplateModel):
                                      on_delete=models.PROTECT)
     vat_posting_group = models.ForeignKey(to=VatPostingGroup, verbose_name=_('НДС Учетная Группа'),
                                      on_delete=models.PROTECT)
-    unit_price = MoneyField(verbose_name=_('Цена Единицы'),
-                            default=0,
-                            max_digits=MAX_DIGITS,
-                            decimal_places=MAX_DECIMAL,
-                            default_currency=DEFAULT_CURRENCY,
-                            validators=[MinMoneyValidator(MAX_CURRENCY_DECIMAL)]
-                            )
+    unit_price = models.DecimalField(verbose_name=_('Цена Единицы'),
+                                     default=0,
+                                     max_digits=MAX_DIGITS,
+                                     decimal_places=MAX_DECIMAL,
+                                     # default_currency=DEFAULT_CURRENCY,
+                                     validators=[MinValueValidator(MAX_CURRENCY_DECIMAL)]
+                                     )
     external_service_code = models.CharField(verbose_name=_('Внешний Код Услуги'),
                                                             blank=True,
                                                             default='',
@@ -117,7 +117,7 @@ class Service(TemplateModel):
     sevice = ServiceManager()
 
 
-# «Service» («Услуга, цена»)
+# «Service Price» («Услуга, цена»)
 class ServicePrice(TemplateModel):
     class Meta:
         db_table = 'service_price'
@@ -125,19 +125,19 @@ class ServicePrice(TemplateModel):
         verbose_name_plural = _('Услуги Цены')
 
     def __str__(self):
-        return f'{self.service_code} | {self.unit_price} | {self.start_date}'
+        return f'{self.service_code} : {self.unit_price} : {self.start_date}'
 
     start_date = models.DateField(verbose_name=_('Дата начала'),
                                   unique=True, null=True, blank=True,
                                   auto_now_add=True
                                   )
     service_code = models.CharField(verbose_name=_('Код услуги'), max_length=20)
-    unit_price = MoneyField(verbose_name=_('Цена Единицы'),
+    unit_price = models.DecimalField(verbose_name=_('Цена Единицы'),
                             default=0,
                             max_digits=MAX_DIGITS,
                             decimal_places=MAX_DECIMAL,
-                            default_currency=DEFAULT_CURRENCY,
-                            validators=[MinMoneyValidator(MAX_CURRENCY_DECIMAL)]
+                            # default_currency=DEFAULT_CURRENCY,
+                            validators=[MinValueValidator(MAX_CURRENCY_DECIMAL)]
                             )
     objects = models.Manager() # default manager
 
@@ -187,7 +187,7 @@ class NoSeriesLine(TemplateModel):
                                     default='', blank=True, max_length=20,)
     increment_by = models.PositiveIntegerField(verbose_name=_('Увеличивать На'), default=1)
     blocked = models.BooleanField(verbose_name=_('Заблокирована'), default=False)
-    # It's list of commons and specific managers
+    # Below have a list of common and specific managers
     objects = models.Manager() # default manager
     series_line = NoSeriesLineManager()
 
