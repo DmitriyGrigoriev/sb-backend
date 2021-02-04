@@ -1,4 +1,5 @@
 from django.utils.decorators import method_decorator
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import generics, viewsets
 from rest_framework.decorators import action
 from drf_yasg.utils import swagger_auto_schema
@@ -45,31 +46,30 @@ class ServicePriceList(generics.ListAPIView):
 
 
 @method_decorator(name='list', decorator=swagger_auto_schema(
-    operation_description="«No. Series» («Серия Номеров») код серий номеров",
-    operation_summary="Код серий номеров (список)",
-    responses={'200': 'Код серий номеров'}
+    operation_description=_("«No. Series» («Серия Номеров») код серий номеров"),
+    operation_summary=_("Код серий номеров (список)"),
+    responses={'200': openapi.Response(_('Код серии номеров'), NoSeriesListSerializer)}
 ))
 @method_decorator(name='update', decorator=swagger_auto_schema(
-    operation_description="«No. Series» («Серия Номеров») редактировать код серий номеров",
-    operation_summary="Изменение кода серийного номера по id",
-    responses={'200': 'Код серийного номера изменен'}
+    operation_description=_('«No. Series» («Серия Номеров») редактировать код серий номеров'),
+    operation_summary=_('Изменение кода серийного номера по id'),
+    responses={'200': openapi.Response(_('Измененный код серии номеров'), NoSeriesCreateSerializer)}
 ))
 @method_decorator(name='create', decorator=swagger_auto_schema(
-    operation_description="«No. Series» («Серия Номеров») создать новый код серии номеров",
-    operation_summary="Создать новый код серии номеров",
-    responses={'200': 'создан новый код серии номеров'}
+    operation_description=_('«No. Series» («Серия Номеров») создать новый код серии номеров'),
+    operation_summary=_('Создать новый код серии номеров'),
+    responses={'200': openapi.Response(_('Новый код серии номеров'), NoSeriesCreateSerializer)}
 ))
 @method_decorator(name='retrieve', decorator=swagger_auto_schema(
-    operation_description="«No. Series» («Серия Номеров») код серии номеров",
-    operation_summary="Получить код серии номеров по id:",
-    responses={'200': 'код серии номеров'}
+    operation_description=_('«No. Series» («Серия Номеров») код серии номеров'),
+    operation_summary=_('Получить код серии номеров по id:'),
+    responses={'200': openapi.Response(_('Код серии номеров'), NoSeriesListSerializer)}
 ))
 @method_decorator(name='destroy', decorator=swagger_auto_schema(
-    operation_description="«No. Series» («Серия Номеров») удаление кода серии номеров",
-    operation_summary="Удаление кода серии номеров по id:",
-    responses={'200': 'код серии номеров удален'}
+    operation_description=_('«No. Series» («Серия Номеров») удаление кода серии номеров'),
+    operation_summary=_('Удаление кода серии номеров по id:'),
+    responses={'200': openapi.Response(_('Код серии номеров для удаления'), NoSeriesListSerializer)}
 ))
-### NoSeries «No. Series» («Серия Номеров»)
 class NoSeriesViewSet(viewsets.ModelViewSet):
     queryset = NoSeries.no_series.all()
     serializer_class = NoSeriesListSerializer
@@ -79,40 +79,32 @@ class NoSeriesViewSet(viewsets.ModelViewSet):
     }
 
 
-# @method_decorator(name='list', decorator=swagger_auto_schema(
-#     operation_description="Заблокированные серии номеров",
-#     operation_id="Method1asdas ID",
-#     operation_summary="Заблокированные серии номеров",
-#     manual_parameters=[
-#         openapi.Parameter('id', in_=openapi.IN_PATH, type=openapi.TYPE_INTEGER, description='Первичный ключ')
-#     ],
-#     responses={'200': 'Response description'}
-# ))
 @method_decorator(name='list', decorator=swagger_auto_schema(
-    operation_description="«No. Series Line» («Серия Номеров Строка») актуальные серии номеров blocked=False",
-    operation_summary="Актуальные серии номеров (список)",
-    responses={'200': 'коллекция актуальных серий номеров'}
+    operation_description=_('«No. Series Line» («Серия Номеров Строка») актуальные серии номеров blocked=False'),
+    operation_summary=_("Актуальные серии номеров (список)"),
+    responses={'200': openapi.Response(_('Список серий номеров'), NoSeriesLineCommonSerializer)}
 ))
 @method_decorator(name='update', decorator=swagger_auto_schema(
-    operation_description="«No. Series Line» («Серия Номеров Строка») редактировать серийный номер",
-    operation_summary="Изменение серийного номера по его id",
-    responses={'200': 'Cерийный номер изменен'}
+    operation_description=_('«No. Series Line» («Серия Номеров Строка») редактировать серийный номер'),
+    operation_summary=_('Изменение серийного номера по его id'),
+    responses={'200': openapi.Response(_('Измененная серия номеров'), NoSeriesLineCommonSerializer)}
 ))
 @method_decorator(name='create', decorator=swagger_auto_schema(
-    operation_description="«No. Series Line» («Серия Номеров Строка») создать новую серию номеров",
-    operation_summary="Создать новую серию номеров",
-    responses={'200': 'создана новая серия номеров'}
+    operation_description=_('«No. Series Line» («Серия Номеров Строка») создать новую серию номеров'),
+    operation_summary=_('Создать новую серию номеров'),
+    responses={'200': openapi.Response(_('Новая серия номеров'), NoSeriesLineCommonSerializer)}
 ))
 @method_decorator(name='retrieve', decorator=swagger_auto_schema(
-    operation_description="«No. Series Line» («Серия Номеров Строка») актуальная серия номеров",
-    operation_summary="Получить серию номеров по id:",
-    responses={'200': 'актуальная серия номеров'}
+    operation_description=_('«No. Series Line» («Серия Номеров Строка») актуальная серия номеров'),
+    operation_summary=_('Получить серию номеров по id:'),
+    responses={'200': openapi.Response(_('Актуальная серия номеров'), NoSeriesLineCommonSerializer)}
 ))
 @method_decorator(name='destroy', decorator=swagger_auto_schema(
-    operation_description="«No. Series Line» («Серия Номеров Строка») удаление серии номеров",
-    operation_summary="Удаление серии номеров по id:",
-    responses={'200': 'серия номеров удалена'}
+    operation_description=_('«No. Series Line» («Серия Номеров Строка») удаление серии номеров'),
+    operation_summary=_('Удаление серии номеров по id:'),
+    responses={'200': openapi.Response(_('Серия номеров для удаления'), NoSeriesLineCommonSerializer)}
 ))
+
 ### https://stackoverflow.com/questions/52092805/add-swagger-description-in-comments
 class NoSeriesLineViewSet(viewsets.ModelViewSet):
     BLOCKED_LIST = 'blocked_list'
@@ -122,14 +114,14 @@ class NoSeriesLineViewSet(viewsets.ModelViewSet):
     serializer_classes = {
         'create': NoSeriesLineCreateSerializer,
         'update': NoSeriesLineCreateSerializer,
-        'blocked_detail': NoSeriesUnblockedDetailSerializer,
+        'blocked_detail': NoSeriesLineUnblockedDetailSerializer,
     }
-    serializer_class = NoSeriesLineListSerializer
+    serializer_class = NoSeriesLineCommonSerializer
 
     @swagger_auto_schema(
-        operation_description="«No. Series Line» («Серия Номеров Строка») не актуальные серии номеров blocked=True",
-        operation_summary="Не актуальные серии номеров (список)",
-        responses={'200': 'коллекция не актуальных серий номеров'}
+        operation_description=_('«No. Series Line» («Серия Номеров Строка») не актуальные серии номеров blocked=True'),
+        operation_summary=_('Не актуальные серии номеров (список)'),
+        responses={'200': openapi.Response(_('Заблокированная серия номеров'), NoSeriesLineCommonSerializer)}
     )
     @action(detail=False)
     def blocked_list(self, request, *args, **kwargs):
@@ -137,9 +129,9 @@ class NoSeriesLineViewSet(viewsets.ModelViewSet):
 
 
     @swagger_auto_schema(
-        operation_description="«No. Series Line» («Серия Номеров Строка») не актуальный серийный номер",
-        operation_summary="Получить не актуальный серийный номер по его id:",
-        responses={'200': 'не актуальный серийный номер'}
+        operation_description=_('«No. Series Line» («Серия Номеров Строка») не актуальный серийный номер'),
+        operation_summary=_('Получить не актуальный серийный номер по id:'),
+        responses={'200': openapi.Response(_('Заблокированная серия номеров'), NoSeriesLineUnblockedDetailSerializer)}
     )
     @action(detail=False)
     def blocked_detail(self, request, *args, **kwargs):
