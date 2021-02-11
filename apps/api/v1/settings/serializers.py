@@ -1,6 +1,7 @@
-from rest_framework import exceptions, serializers
-from rest_framework.exceptions import ValidationError
+from rest_framework import serializers
 from apps.settings.models import *
+from common.validators import SeriesCodeValidator
+from common.mixins import SeriesCreateSerializerMixin
 
 
 ### «Unit of Measure» («Единица Измерения»)
@@ -20,7 +21,7 @@ class UnitOfMeasureDetailSerializer(serializers.ModelSerializer):
 
 
 ### «Service Type» («Тип Услуги»)
-class ServiceTypeListSerializer(serializers.ModelSerializer):
+class ServiceTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceType
         fields = (
@@ -29,11 +30,23 @@ class ServiceTypeListSerializer(serializers.ModelSerializer):
 
 
 ### «VAT Posting Group» («НДС  Учетная Группа»)
-class VatPostingGroupListSerializer(serializers.ModelSerializer):
+class VatPostingGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = VatPostingGroup
         fields = (
             'id', 'code', 'description', 'vat', 'vatextempt',
+        )
+
+
+### «Billing Setup» («Биллинг Настройка»)
+class BillingSetupSerializer(serializers.ModelSerializer):
+    code = serializers.CharField(read_only=True)
+    service_no_series = serializers.SlugRelatedField(slug_field='code', read_only=True)
+
+    class Meta:
+        model = Service
+        fields = (
+            'id', 'code', 'service_no_series',
         )
 
 
@@ -51,6 +64,20 @@ class ServiceListSerializer(serializers.ModelSerializer):
             'external_service_code',
         )
 
+### «Service» («Услуга»)
+class ServiceCreateSerializer(SeriesCreateSerializerMixin, serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = (
+            'id', 'code', 'description', 'full_name', 'service_type',
+            'unit_of_measure', 'vat_posting_group', 'unit_price',
+            'external_service_code',
+        )
+        validators = [
+            SeriesCodeValidator(
+                queryset=Service.sevice_manager.all(),
+            )
+        ]
 
 ### «Service Price» («Услуга, цена»)
 class ServicePriceListSerializer(serializers.ModelSerializer):
@@ -76,7 +103,7 @@ class NoSeriesCreateSerializer(serializers.ModelSerializer):
 
 
 ### NoSeriesLine «No. Series Line» («Серия Номеров Строка»)
-class NoSeriesLineListSerializer(serializers.ModelSerializer):
+class NoSeriesLineCommonSerializer(serializers.ModelSerializer):
     series_no = serializers.SlugRelatedField(slug_field='code', read_only=True)
     class Meta:
         model = NoSeriesLine
@@ -99,7 +126,8 @@ class NoSeriesLineCreateSerializer(serializers.ModelSerializer):
             'blocked',
         )
 
-class NoSeriesUnblockedDetailSerializer(serializers.ModelSerializer):
+
+class NoSeriesLineUnblockedDetailSerializer(serializers.ModelSerializer):
     series_no = serializers.SlugRelatedField(slug_field='code', read_only=True)
     starting_date = serializers.DateField(read_only=True)
     starting_no = serializers.CharField(read_only=True)
