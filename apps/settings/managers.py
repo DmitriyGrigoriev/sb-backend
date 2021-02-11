@@ -4,19 +4,27 @@ from .models import *
 from .querysets import *
 # from common.managers import CustomManager
 
+class BillingSetupManager(models.Manager):
+    def get_queryset(self):
+        return BillingSetupQuerySet(self.model, using=self._db)
+
+    def get_series_no_setup(self):
+        return self.get_queryset().get_series_no_setup()
+
+
 class NoSeriesManager(models.Manager):
     def get_queryset(self):
         return NoSeriesQuerySet(self.model, using=self._db)
 
-    def get_latest_no(self):
-        return self.get_queryset().get_latest_no()
+    def get_series_no_setup(self):
+        return self.get_queryset().get_series_no_setup()
 
 class NoSeriesLineManager(models.Manager):
     def get_queryset(self):
         return NoSeriesLineQuerySet(self.model, using=self._db)
 
-    def get_latest_code(self, code: str, starting_date: datetime.date, blocked: bool = False) -> Optional['NoSeriesLine']:
-        return self.get_queryset().get_latest_code(code, starting_date, blocked)
+    def get_latest_code(self, series_no: str, starting_date: datetime.date, blocked: bool = False) -> Optional['NoSeriesLine']:
+        return self.get_queryset().get_latest_code(series_no, starting_date, blocked)
 
 
 class ServiceManager(models.Manager):
