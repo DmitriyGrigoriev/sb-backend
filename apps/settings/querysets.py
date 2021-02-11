@@ -3,6 +3,12 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from ..services.settings.exceptions import ParameterValueError
 
+
+class BillingSetupQuerySet(models.QuerySet):
+    def get_series_no_setup(self):
+        return self.model.objects.latest('service_no_series')
+
+
 class NoSeriesQuerySet(models.QuerySet):
     def get_latest_no(self):
         return self.model.objects.all().earlylatest('date_order')
@@ -16,16 +22,16 @@ class NoSeriesLineQuerySet(models.QuerySet):
             series_no_id: int = -1
         return series_no_id
 
-    def get_latest_code(self, code: str, starting_date: datetime.date, blocked: bool = False):
-        series_no_id:int  = self.get_series_no_id_from_code(code)
-        if series_no_id < 0:
-            raise ParameterValueError(_(f'Не настроена Серия Номеров {code} на дату {starting_date}'))
+    def get_latest_code(self, series_no: int, starting_date: datetime.date, blocked: bool = False):
+        # series_no_id:int  = self.get_series_no_id_from_code(code)
+        # if series_no_id < 0:
+        #     raise ParameterValueError(_(f'Не настроена Серия Номеров {code} на дату {starting_date}'))
 
         return self.model.objects.filter(
-            series_no_id=series_no_id,
+            series_no_id=series_no,
             starting_date__lte=starting_date,
             blocked=blocked
-        ).earliest('starting_date')
+        ).latest('starting_date')
 
 
 class ServiceQuerySet(models.QuerySet):
