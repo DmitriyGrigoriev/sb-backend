@@ -7,7 +7,7 @@ from django.core.validators import MinValueValidator
 from common.constants import (
     MAX_DIGITS,
     MAX_DECIMAL,
-    MAX_CURRENCY_DECIMAL,
+    # MAX_CURRENCY_DECIMAL,
     # DEFAULT_CURRENCY,
 )
 
@@ -17,7 +17,8 @@ from .managers import (
     # ServiceTypeManager,
     ServiceManager,
     NoSeriesManager,
-    NoSeriesLineManager
+    NoSeriesLineManager,
+    BillingSetupManager
 )
 
 
@@ -85,7 +86,7 @@ class Service(TemplateModel):
     def __str__(self):
         return f'{self.code} - {self.description}'
 
-    code = models.CharField(verbose_name=_('Код'), unique=True, max_length=20)
+    code = models.CharField(verbose_name=_('Код'), unique=True, max_length=20, blank=True, default='')
     description = models.CharField(verbose_name=_('Краткое описание'), max_length=50)
     full_name = models.CharField(verbose_name=_('Полное наименование'),
                                  max_length=1000,
@@ -105,16 +106,16 @@ class Service(TemplateModel):
                                      max_digits=MAX_DIGITS,
                                      decimal_places=MAX_DECIMAL,
                                      # default_currency=DEFAULT_CURRENCY,
-                                     validators=[MinValueValidator(MAX_CURRENCY_DECIMAL)]
+                                     # validators=[MinValueValidator(MAX_CURRENCY_DECIMAL)]
                                      )
     external_service_code = models.CharField(verbose_name=_('Внешний Код Услуги'),
                                                             blank=True,
                                                             default='',
                                                             max_length=50
                                              )
-    blocked = models.BooleanField(verbose_name=_('Блокирована'))
+    blocked = models.BooleanField(verbose_name=_('Блокирована'), default=False)
     objects = models.Manager() # default manager
-    sevice = ServiceManager()
+    sevice_manager = ServiceManager()
 
 
 # «Service Price» («Услуга, цена»)
@@ -137,7 +138,7 @@ class ServicePrice(TemplateModel):
                             max_digits=MAX_DIGITS,
                             decimal_places=MAX_DECIMAL,
                             # default_currency=DEFAULT_CURRENCY,
-                            validators=[MinValueValidator(MAX_CURRENCY_DECIMAL)]
+                            # validators=[MinValueValidator(MAX_CURRENCY_DECIMAL)]
                             )
     objects = models.Manager() # default manager
 
@@ -177,7 +178,7 @@ class NoSeriesLine(TemplateModel):
                                   on_delete=models.PROTECT)
     starting_date = models.DateField(verbose_name=_('Дата начала'),
                                      unique=True, blank=False,)
-    starting_no = models.CharField(verbose_name=_('Начальный Но'), max_length=20)
+    starting_no = models.CharField(verbose_name=_('Начальный Но'), max_length=20, blank=False)
     ending_no = models.CharField(verbose_name=_('Конечный Но'), max_length=20)
     last_date_used = models.DateField(verbose_name=_('Посл.Исп. Дата'),
                                       blank=True, null=True,)
@@ -200,12 +201,14 @@ class BillingSetup(TemplateModel):
         verbose_name_plural = _('Биллинг Настройки')
 
     def __str__(self):
-        return f'{self.code} | Услуга Серия Номеров: ' \
+        return f'{self.code} : Серия Номеров: ' \
                f'{self.service_no_series}'
 
     code = models.CharField(verbose_name=_('Код'), unique=True, max_length=20)
-    service_no_series = models.ForeignKey(to=NoSeriesLine,
+    service_no_series = models.ForeignKey(to=NoSeries,
                                           verbose_name=_('Услуга Серия Номеров'),
-                                          related_name = 'noseriesline',
+                                          related_name = 'noseries',
+                                          blank=False,
                                           on_delete = models.PROTECT)
-
+    objects = models.Manager() # default manager
+    billind_setup = BillingSetupManager()
