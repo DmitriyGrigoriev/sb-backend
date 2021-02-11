@@ -120,7 +120,11 @@ TIME_ZONE = 'UTC'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#language-code
 LANGUAGE_CODE = 'ru'
-
+get_text = lambda s: s
+LANGUAGES = (
+    ('ru', get_text('Russia')),
+    ('ru', get_text('English')),
+)
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
 USE_I18N = True
 
