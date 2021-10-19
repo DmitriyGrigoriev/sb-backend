@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .forms import ServiceModelAdminForm
+from .forms import ServiceModelAdminForm, ServicePriceModelAdminForm
 
 from .models import (
     UnitOfMeasure,
@@ -9,7 +9,7 @@ from .models import (
     ServicePrice,
     NoSeries,
     NoSeriesLine,
-    BillingSetup
+    NoSeriesSetup
 )
 
 from common.models import TemplateAdminModel
@@ -38,32 +38,24 @@ class ServiceTypeAdmin(TemplateAdminModel):
     ordering = ('code',)
 
 
-# @admin.register(Service)
+@admin.register(Service)
 class ServiceAdmin(TemplateAdminModel):
-    list_display = [
-        'code', 'description', 'service_type', 'unit_of_measure',
-        'vat_posting_group', 'unit_price',
-    ]
+    ordering = ('-created',)
+    readonly_fields = ('unit_price', 'price_date')
     search_fields = ('code',)
     list_filter = [
-        'code', 'service_type__code', 'unit_of_measure__code',
-        'vat_posting_group__code', 'external_service_code', 'blocked'
+        'code', 'description',
     ]
-    ordering = ('-created',)
     form = ServiceModelAdminForm
 
-admin.site.register(Service, ServiceAdmin)
-
-
-@admin.register(ServicePrice)
-class ServicePriceAdmin(TemplateAdminModel):
-    list_display = [
-        'service_code', 'unit_price', 'start_date',
-    ]
-    search_fields = ('service_code',)
-    list_filter = [
-        'service_code',
-    ]
+    class ServicePriceAdmin(admin.TabularInline):
+        model = ServicePrice
+        ordering = ['start_date']
+        max_num = 2
+        # min_num = 1
+        # extra = 1
+        formset = ServicePriceModelAdminForm
+    inlines = [ServicePriceAdmin,]
 
 
 @admin.register(VatPostingGroup)
@@ -103,9 +95,17 @@ class NoSeriesLineAdmin(TemplateAdminModel):
     ordering = ('-starting_date',)
 
 
-@admin.register(BillingSetup)
-class BillingSetupAdmin(TemplateAdminModel):
-    raw_id_fields = ('service_no_series',)
-    # related_lookup_fields = {
-    #     'fk': ['service_no_series', 'starting_no'],
-    # }
+@admin.register(NoSeriesSetup)
+class NoSeriesSetupAdmin(TemplateAdminModel):
+    # This code's gets from:
+    # https://newbedev.com/limit-a-single-record-in-model-for-django-app
+    raw_id_fields = ('setup_series_no',)
+    # Restrict add more than 1 record
+    def has_add_permission(self, request):
+        base_add_permission = super(NoSeriesSetupAdmin, self).has_add_permission(request)
+        if base_add_permission:
+            # if there's already an entry, do not allow adding
+            count = NoSeriesSetup.objects.all().count()
+            if count == 0:
+                return True
+        return False
