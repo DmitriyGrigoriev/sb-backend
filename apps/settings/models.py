@@ -1,24 +1,22 @@
 from django.db import models
 from common.models import TemplateModel
 from django.utils.translation import ugettext_lazy as _
-from django.core.validators import MinValueValidator
-# from djmoney.models.fields import MoneyField
-# from djmoney.models.validators import MinMoneyValidator
+from rest_framework.exceptions import ErrorDetail, ValidationError
+from django.db import IntegrityError, transaction
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from common.constants import (
     MAX_DIGITS,
     MAX_DECIMAL,
-    # MAX_CURRENCY_DECIMAL,
-    # DEFAULT_CURRENCY,
 )
 
 from .managers import (
     VatPostingGroupManager,
     UnitOfMeasureManager,
-    # ServiceTypeManager,
     ServiceManager,
-    NoSeriesManager,
+    ServicePriceManager,
+    # NoSeriesManager,
     NoSeriesLineManager,
-    BillingSetupManager
 )
 
 
@@ -26,6 +24,7 @@ from .managers import (
 class UnitOfMeasure(TemplateModel):
     class Meta:
         db_table = 'unit_of_measure'
+        ordering = ['code']
         verbose_name = _('Единица Измерения')
         verbose_name_plural = _('Единицы Измерения')
 
@@ -39,8 +38,8 @@ class UnitOfMeasure(TemplateModel):
     unit_of_measure = UnitOfMeasureManager()
 
 
-# «Service Type» («Тип Услуги»)
 class ServiceType(TemplateModel):
+    """«Service Type» («Тип Услуги»)"""
     class Meta:
         db_table = 'service_type'
         verbose_name = _('Тип Услуги')
@@ -50,7 +49,7 @@ class ServiceType(TemplateModel):
         return f'{self.code}'
 
     code = models.CharField(verbose_name=_('Код Типа Услуг'), max_length=20)
-    description = models.CharField(verbose_name=_('Описание'),
+    description = models.CharField(verbose_name=_('Описание услуги'),
                                    max_length=50,
                                    blank=False,
                                    error_messages={'requared': _('Необходимо заполнить описание услуги')}
@@ -58,10 +57,11 @@ class ServiceType(TemplateModel):
     objects = models.Manager() # default manager
 
 
-# «VAT Posting Group» («НДС  Учетная Группа»)
 class VatPostingGroup(TemplateModel):
+    """«VAT Posting Group» («НДС  Учетная Группа»)"""
     class Meta:
         db_table = 'vat_posting_group'
+        ordering = ['code']
         verbose_name = _('НДС Учетная Группа')
         verbose_name_plural = _('НДС Учетные Группы')
 
@@ -76,77 +76,11 @@ class VatPostingGroup(TemplateModel):
     vat_posting_group = VatPostingGroupManager()
 
 
-# «Service» («Услуга»)
-class Service(TemplateModel):
-    class Meta:
-        db_table = 'service'
-        verbose_name = _('Услуга')
-        verbose_name_plural = _('Услуги')
-
-    def __str__(self):
-        return f'{self.code} - {self.description}'
-
-    code = models.CharField(verbose_name=_('Код'), unique=True, max_length=20, blank=True, default='')
-    description = models.CharField(verbose_name=_('Краткое описание'), max_length=50)
-    full_name = models.CharField(verbose_name=_('Полное наименование'),
-                                 max_length=1000,
-                                 blank=True,
-                                 default=''
-                                 )
-    service_type = models.ForeignKey(to=ServiceType, verbose_name=_('Тип Услуги'),
-                                     on_delete=models.PROTECT,
-                                     related_name='service_type'
-                                     )
-    unit_of_measure = models.ForeignKey(to=UnitOfMeasure, verbose_name=_('Единица Измерения'),
-                                     on_delete=models.PROTECT)
-    vat_posting_group = models.ForeignKey(to=VatPostingGroup, verbose_name=_('НДС Учетная Группа'),
-                                     on_delete=models.PROTECT)
-    unit_price = models.DecimalField(verbose_name=_('Цена Единицы'),
-                                     default=0,
-                                     max_digits=MAX_DIGITS,
-                                     decimal_places=MAX_DECIMAL,
-                                     # default_currency=DEFAULT_CURRENCY,
-                                     # validators=[MinValueValidator(MAX_CURRENCY_DECIMAL)]
-                                     )
-    external_service_code = models.CharField(verbose_name=_('Внешний Код Услуги'),
-                                                            blank=True,
-                                                            default='',
-                                                            max_length=50
-                                             )
-    blocked = models.BooleanField(verbose_name=_('Блокирована'), default=False)
-    objects = models.Manager() # default manager
-    sevice_manager = ServiceManager()
-
-
-# «Service Price» («Услуга, цена»)
-class ServicePrice(TemplateModel):
-    class Meta:
-        db_table = 'service_price'
-        verbose_name = _('Услуга Цена')
-        verbose_name_plural = _('Услуги Цены')
-
-    def __str__(self):
-        return f'{self.service_code} : {self.unit_price} : {self.start_date}'
-
-    start_date = models.DateField(verbose_name=_('Дата начала'),
-                                  unique=True, null=True, blank=True,
-                                  auto_now_add=True
-                                  )
-    service_code = models.CharField(verbose_name=_('Код услуги'), max_length=20)
-    unit_price = models.DecimalField(verbose_name=_('Цена Единицы'),
-                            default=0,
-                            max_digits=MAX_DIGITS,
-                            decimal_places=MAX_DECIMAL,
-                            # default_currency=DEFAULT_CURRENCY,
-                            # validators=[MinValueValidator(MAX_CURRENCY_DECIMAL)]
-                            )
-    objects = models.Manager() # default manager
-
-
-# «No. Series» («Серия Номеров»), списочная (только чтение) + карточная формы
 class NoSeries(TemplateModel):
+    """«No. Series» («Серия Номеров»), списочная (только чтение) + карточная формы"""
     class Meta:
         db_table = 'no_series'
+        ordering = ['code']
         verbose_name = _('Серия Номеров')
         verbose_name_plural = _('Серии Номеров')
 
@@ -158,13 +92,15 @@ class NoSeries(TemplateModel):
     date_order = models.BooleanField(verbose_name=_('Порядок Дат'), default=False)
 
     objects = models.Manager() # default manager
-    no_series = NoSeriesManager()
+    # no_series = NoSeriesManager()
 
 
-# «No. Series Line» («Серия Номеров Строка»), списочная субформа (поле Код не отображаем)
 class NoSeriesLine(TemplateModel):
+    """«No. Series Line» («Серия Номеров Строка»), списочная субформа (поле Код не отображаем)"""
     class Meta:
         db_table = 'no_series_line'
+        unique_together = ['series_no', 'starting_date']
+        ordering = ['-starting_date']
         verbose_name = _('Серия Номеров Строка')
         verbose_name_plural = _('Серия Номеров Строки')
 
@@ -193,22 +129,198 @@ class NoSeriesLine(TemplateModel):
     series_line = NoSeriesLineManager()
 
 
-# «Billing Setup» («Биллинг Настройка»)
-class BillingSetup(TemplateModel):
+class NoSeriesSetup(TemplateModel):
+    """«No Series Setup» («Биллинг Настройка»)"""
     class Meta:
-        db_table = 'billing_setup'
-        verbose_name = _('Биллинг Настройка')
-        verbose_name_plural = _('Биллинг Настройки')
+        db_table = 'noseries_setup'
+        verbose_name = _('Настройка Серии Номеров')
+        verbose_name_plural = _('Настройка Серии Номеров')
 
     def __str__(self):
-        return f'{self.code} : Серия Номеров: ' \
-               f'{self.service_no_series}'
+        return f'Серия Номеров: {self.setup_series_no}'
 
-    code = models.CharField(verbose_name=_('Код'), unique=True, max_length=20)
-    service_no_series = models.ForeignKey(to=NoSeries,
-                                          verbose_name=_('Услуга Серия Номеров'),
-                                          related_name = 'noseries',
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if NoSeriesSetup.objects.count() <= 1:
+            super().save(force_insert=False, force_update=False, using=None,
+                         update_fields=None)
+        else:
+            errors = [
+                ErrorDetail(_('Вы не можете сохранить в "Настройка Серии Номеров" более чем одну «Серию Номеров»'),
+                            code='error_non_unique_series')
+            ]
+            raise ValidationError({ 'prices': errors })
+            # raise ValidationError(_('Вы не можете сохранить в "Настройка Серии Номеров" более чем одну «Серию Номеров»'))
+
+    setup_series_no = models.ForeignKey(to=NoSeries,
+                                          verbose_name=_('Серия Номеров Строка'),
+                                          related_name = 'setup_series_no',
                                           blank=False,
                                           on_delete = models.PROTECT)
+
     objects = models.Manager() # default manager
-    billind_setup = BillingSetupManager()
+    # noseries_setup = NoSeriesSetupManager()
+
+
+class Service(TemplateModel):
+    """«Service» («Услуга»)"""
+    class Meta:
+        db_table = 'service'
+        ordering = ['-code']
+        verbose_name = _('Услуга и цена')
+        verbose_name_plural = _('Услуги и цены')
+
+    def __str__(self):
+        return f'Код: {self.code} : Услуга: {self.description} : Цена: {self.unit_price}'
+
+    code = models.CharField(verbose_name=_('Код Услуги'),
+                            unique=True,
+                            max_length=20,
+                            blank=True,
+                            default=''
+                            )
+    description = models.CharField(verbose_name=_('Краткое описание'),
+                                   max_length=50,
+                                   blank=False,
+                                   error_messages={'requared': _('Необходимо заполнить описание услуги')}
+                                   )
+    full_name = models.CharField(verbose_name=_('Полное наименование'),
+                                 max_length=1000,
+                                 blank=True,
+                                 default=''
+                                 )
+    unit_price = models.DecimalField(verbose_name=_('Цена Единицы'),
+                                     max_digits=MAX_DIGITS,
+                                     decimal_places=MAX_DECIMAL,
+                                     default=0,
+                                     blank=False,
+                                     error_messages={'requared': _('Необходимо указать цену услуги')}
+                                     )
+    price_date = models.DateField(verbose_name=_('Дата начала'),
+                                  unique=False, null=True, blank=True,
+                                  auto_now_add=False
+                                  )
+    service_type = models.ForeignKey(to=ServiceType, verbose_name=_('Тип Услуги'),
+                                     on_delete=models.PROTECT,
+                                     related_name='service_types',
+                                     blank=False,
+                                     error_messages={'requared': _('Необходимо указать тип услуги')}
+                                     )
+    unit_of_measure = models.ForeignKey(to=UnitOfMeasure, verbose_name=_('Единица Измерения'),
+                                        on_delete=models.PROTECT,
+                                        related_name='measures',
+                                        blank=False,
+                                        error_messages={'requared': _('Необходимо указать еденицу измерения')}
+                                        )
+    vat_posting_group = models.ForeignKey(to=VatPostingGroup, verbose_name=_('НДС Учетная Группа'),
+                                          on_delete=models.PROTECT,
+                                          related_name='vat_groups',
+                                          blank=False,
+                                          error_messages={'requared': _('Необходимо указать учетную группу')}
+                                          )
+    external_service_code = models.CharField(verbose_name=_('Внешний Код Услуги'),
+                                                            blank=True,
+                                                            default='',
+                                                            max_length=50
+                                             )
+    blocked = models.BooleanField(verbose_name=_('Блокирована'), default=False)
+
+    objects = models.Manager() # default manager
+    service_manager = ServiceManager()
+
+
+class ServicePrice(TemplateModel):
+    """«Service Price» («Услуга, цена»)"""
+    # https://stackoverflow.com/questions/4443190/djangos-manytomany-relationship-with-additional-fields
+    non_unique_date_message = _('Значение полей Код услуги+Дата начала для таблицы «Цены» не уникальны.')
+    class Meta:
+        db_table = 'service_price'
+        ordering = ['start_date']
+        unique_together = ('service', 'start_date')
+        verbose_name = _('Цена')
+        verbose_name_plural = _('Цены')
+        # Check the price should be >= '0.01' !important
+        constraints = [
+            models.UniqueConstraint(fields=['service', 'start_date'],
+                                    name=_('unique_start_date')),
+            models.CheckConstraint(check=models.Q(price__gte='0.01'),
+                                   name=_('price_must_be_greater_than_0')),
+        ]
+
+    def __str__(self):
+        return f'Цена: {self.price} : Дата начала: {"-" if self.start_date is None else self.start_date}'
+
+    def validate_unique(self, exclude=None):
+        # Check the unique together with nullable a date field
+        # https://stackoverflow.com/questions/33307892/django-unique-together-with-nullable-foreignkey
+        non_unique_date = True
+        if self.start_date:
+           non_unique_date = ServicePrice.objects.exclude(id=self.id).filter(
+               service_id=self.service.pk, start_date=self.start_date
+           ).exists()
+        if self.start_date is None:
+            non_unique_date = ServicePrice.objects.exclude(id=self.id).filter(
+                service_id=self.service.pk, start_date__isnull=True
+            ).exists()
+
+        if non_unique_date:
+            errors = [
+                ErrorDetail(self.non_unique_date_message, code='error_uniquetogether')
+            ]
+            raise ValidationError({ 'prices': errors })
+            # raise ValidationError({'prices': self.non_unique_date_message}, code='error_uniquetogether')
+
+        super(ServicePrice, self).validate_unique(exclude=None)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        self.validate_unique()
+
+        super(ServicePrice, self).save(force_insert=force_insert, force_update=force_update, using=using,
+             update_fields=update_fields)
+
+    service = models.ForeignKey(to=Service, verbose_name=_('Услуги'),
+                                      related_name='prices',
+                                      null=False, blank=False,
+                                      on_delete=models.CASCADE)
+    price = models.DecimalField(verbose_name=_('Цена Единицы'),
+                                default=0.00,
+                                max_digits=MAX_DIGITS,
+                                decimal_places=MAX_DECIMAL,
+                                blank=False,
+                                error_messages={'requared': _('Необходимо указать цену услуги')}
+                                )
+    start_date = models.DateField(verbose_name=_('Дата начала'),
+                                  unique=False, null=True, blank=True,
+                                  auto_now_add=False
+                                  )
+
+    objects = models.Manager() # default manager
+    service_price = ServicePriceManager()
+
+
+@transaction.atomic
+def update_unit_price(instance):
+    service = Service.objects.get(pk=instance.service.pk)
+    # getting price on the max possible date
+    service_price = ServicePrice.service_price.fresh_prices(service_pk=instance.service.pk).first()
+
+    if (service_price.price != service.unit_price):
+        service.unit_price = service_price.price
+        service.price_date = service_price.start_date
+        try:
+            with transaction.atomic():
+                # To update a subset of fields, you can use update_fields
+                service.save(update_fields=['unit_price', 'price_date'])
+        except IntegrityError as error:
+            raise
+
+
+@receiver(post_save, sender=ServicePrice, dispatch_uid='service_price_max_price')
+def service_price_post_save(sender, instance, created, **kwargs):
+    """Update unit_price field by max price"""
+
+    # Sometimes you need to perform an action related to the current
+    # database transaction, but only if the transaction successfully commits.
+    # https://docs.djangoproject.com/en/3.2/topics/db/transactions/#django.db.transaction.on_commit
+    transaction.on_commit(lambda: update_unit_price(instance))
