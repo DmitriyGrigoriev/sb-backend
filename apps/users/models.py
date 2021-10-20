@@ -70,7 +70,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def short_name(self):
-        return f'{self.middle_name} {self.first_name[0]}.{self.last_name[0]}.'
+        result = ''
+        if (len(self.middle_name) > 0):
+            result = f'{self.middle_name} '
+        if (len(self.first_name) > 0):
+            result = result + f'{self.first_name[0]}.'
+        if (len(self.last_name) > 0):
+            result = result + f'{self.last_name[0]}.'
+        return result
+
     short_name.fget.short_description = _('Имя и инициалы')
 
     @property
