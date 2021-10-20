@@ -1,104 +1,47 @@
-# import requests
-# from uuid import uuid4
-#
-# from django.contrib.auth import authenticate, login
-# from django.conf import settings
-# from django.core.mail import send_mail
-# from django.template.loader import render_to_string
-#
-# from rest_framework import viewsets, status
-# from rest_framework.decorators import action
-# from rest_framework.response import Response
-#
-# from apps.users.models import User
-# from apps.users.serializers import UserSerializer, UserWriteSerializer
-#
-#
-# class UserViewSet(viewsets.ModelViewSet):
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
-#     permission_classes = []
-#
-#     def get_serializer_class(self):
-#         if self.action in ['list', 'retrieve']:
-#             return UserSerializer
-#         return UserWriteSerializer
-#
-#     def perform_create(self, serializer):
-#         user = serializer.save()
-#         user.set_password(self.request.data.get('password'))
-#         user.save()
-#
-#     def perform_update(self, serializer):
-#         user = serializer.save()
-#         if 'password' in self.request.data:
-#             user.set_password(self.request.data.get('password'))
-#             user.save()
-#
-#     def perform_destroy(self, instance):
-#         instance.is_active = False
-#         instance.save()
-#
-#     @action(methods=['GET'], detail=False)
-#     def profile(self, request):
-#         if request.user.is_authenticated:
-#             serializer = self.serializer_class(request.user)
-#             return Response(status=status.HTTP_200_OK, data=serializer.data)
-#         return Response(status=status.HTTP_401_UNAUTHORIZED)
-#
-#     @action(methods=['POST'], detail=False)
-#     def login(self, request, format=None):
-#         email = request.data.get('email', None)
-#         password = request.data.get('password', None)
-#         user = authenticate(username=email, password=password)
-#
-#         if user:
-#             login(request, user)
-#             return Response(status=status.HTTP_200_OK)
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#
-#     @action(methods=['POST'], detail=False)
-#     def register(self, request):
-#         last_name = request.data.get('last_name', None)
-#         first_name = request.data.get('first_name', None)
-#         email = request.data.get('email', None)
-#         password = request.data.get('password', None)
-#
-#         if User.objects.filter(email__iexact=email).exists():
-#             return Response({'status': 210})
-#
-#         # user creation
-#         user = User.objects.create(
-#             email=email,
-#             password=password,
-#             last_name=last_name,
-#             first_name=first_name,
-#             is_admin=False,
-#         )
-#         return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
-#
-#     @action(methods=['POST'], detail=False)
-#     def password_reset(self, request, format=None):
-#         if User.objects.filter(email=request.data['email']).exists():
-#             user = User.objects.get(email=request.data['email'])
-#             params = {'user': user, 'DOMAIN': settings.DOMAIN}
-#             send_mail(
-#                 subject='Password reset',
-#                 message=render_to_string('mail/password_reset.txt', params),
-#                 from_email=settings.DEFAULT_FROM_EMAIL,
-#                 recipient_list=[request.data['email']],
-#             )
-#             return Response(status=status.HTTP_200_OK)
-#         else:
-#             return Response(status=status.HTTP_404_NOT_FOUND)
-#
-#     @action(methods=['POST'], detail=False)
-#     def password_change(self, request, format=None):
-#         if User.objects.filter(token=request.data['token']).exists():
-#             user = User.objects.get(token=request.data['token'])
-#             user.set_password(request.data['password'])
-#             user.token = uuid4()
-#             user.save()
-#             return Response(status=status.HTTP_200_OK)
-#         else:
-#             return Response(status=status.HTTP_404_NOT_FOUND)
+from djoser.views import UserViewSet
+from rest_framework import viewsets, permissions
+from rest_framework import filters
+from common.mixins import MixedPermission
+from common.viewsets import *
+from .serializers import *
+
+class UserViewSet(UserViewSet):
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['first_name', 'middle_name', 'last_name', 'email', 'groups__name']
+    # filter_backends = (DjangoFilterBackend,)
+    # filterset_class = UserFilter
+    # pagination_class = PaginationData
+
+# Todo: The best decision may to disable this feature on the future
+### «Role» («Роли»)
+class RoleModelViewSet(AtomicModelViewSet, MixedPermission, viewsets.ModelViewSet):
+    """Создание, удаление или изменение справочника GROUP (роли)"""
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    serializer_classes = {
+        'create': RoleCreateSerializer,
+        'update': RoleCreateSerializer,
+    }
+    pagination_class = None
+    """Only Django admin users can update or destroy record in GROUP model"""
+    permission_classes = [permissions.IsAuthenticated,]
+    permission_classes_by_action = {'get': [permissions.IsAuthenticated],
+                                    'update': [permissions.IsAdminUser],
+                                    'destroy': [permissions.IsAdminUser]}
+
+    class Meta:
+        model = Group
+        fields = ('id', 'name',)
+
+
+### «User Role» («Пользователи роли»)
+class UserRoleModelViewSet(AtomicModelViewSet, viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserRoleListSerializer
+    serializer_classes = {
+        'update': UserRoleUpdateSerializer,
+    }
+
+    class Meta:
+        model = User
+        fields = ('id', 'groups__id',)
