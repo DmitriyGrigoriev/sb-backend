@@ -1,17 +1,11 @@
 import datetime
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
-from ..services.settings.exceptions import ParameterValueError
-
-
-class BillingSetupQuerySet(models.QuerySet):
-    def get_series_no_setup(self):
-        return self.model.objects.latest('service_no_series')
+from django.db.models import Case, When, Value, IntegerField
 
 
 class NoSeriesQuerySet(models.QuerySet):
     def get_latest_no(self):
-        return self.model.objects.all().earlylatest('date_order')
+        return self.model.objects.all().earliest('date_order')
 
 
 class NoSeriesLineQuerySet(models.QuerySet):
@@ -22,11 +16,8 @@ class NoSeriesLineQuerySet(models.QuerySet):
             series_no_id: int = -1
         return series_no_id
 
-    def get_latest_code(self, series_no: int, starting_date: datetime.date, blocked: bool = False):
-        # series_no_id:int  = self.get_series_no_id_from_code(code)
-        # if series_no_id < 0:
-        #     raise ParameterValueError(_(f'Не настроена Серия Номеров {code} на дату {starting_date}'))
 
+    def get_latest_code(self, series_no: int, starting_date: datetime.date, blocked: bool = False):
         return self.model.objects.filter(
             series_no_id=series_no,
             starting_date__lte=starting_date,
@@ -39,18 +30,18 @@ class ServiceQuerySet(models.QuerySet):
         return self.model.objects.filter(bloked=True)
 
 class ServicePriceQuerySet(models.QuerySet):
-    def fresh_price(self, code, unit_price):
-        return self.model.objects.filter(
-            code=code,
-            unit_price=unit_price
-        ).earlylatest('start_date')
+    # https://stackoverflow.com/questions/33162688/django-queryset-place-of-none-null-in-orderby-in-postgresql
+    def fresh_prices(self, service_pk: int):
+        return self.model.objects.filter(service=service_pk) \
+            .annotate(
+            nulls_last=Case(
+                When(start_date__isnull=True, then=Value(1)),
+                When(start_date__isnull=False, then=Value(0)),
+                output_field=IntegerField()
+            )
+        ).order_by('nulls_last', '-start_date')
 
 
-# class ServiceTypeQuerySet(models.QuerySet):
-#     def all(self):
-#         return self.model.objects.all().order_by('-code')
-#
-#
 class UnitOfMeasureQuerySet(models.QuerySet):
     def okei_code(self, okei_code):
         return self.model.objects.filter(okei_code=okei_code).order_by('-code')
