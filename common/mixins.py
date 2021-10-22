@@ -1,8 +1,16 @@
 from collections import namedtuple
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.validators import qs_exists, qs_filter
-from rest_framework.exceptions import ValidationError
-from apps.settings.models import NoSeriesLine
+from rest_framework.exceptions import APIException
+from apps.settings.models import NoSeriesLine, NoSeriesSetup
+
+class MixedPermission:
+    """Миксин permissions для action"""
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
 
 
 class SeriesCreateSerializerMixin:
@@ -38,16 +46,24 @@ class SeriesCreateSerializerMixin:
             missing_message = {
                 self.RequiredValidatorClass.SERIES_CODE_VALIDATOR_CLASS: self.missing_message
             }
-            raise ValidationError(missing_message, code='required')
+            raise APIException(missing_message, code='required')
 
         return bool(missing_items)
 
     def get_latest_code(self):
         date_field_value = self.validator.date_field_value
         series_no = self.validator.series_no
-        queryset = NoSeriesLine.series_line.get_latest_code(
-            series_no=series_no, starting_date=date_field_value
-        )
+        series_code = NoSeriesSetup.objects.get(setup_series_no=series_no).setup_series_no.code
+        try:
+            # Locking NoSeriesLine until save it in the update_latest_no method
+            queryset = NoSeriesLine.series_line.select_for_update().get_latest_code(
+                series_no=series_no, starting_date=date_field_value
+            )
+        except:
+            raise APIException({
+                self.validator.field:_(f'Для «Серия Номеров» {series_code} нет записей в таблице «Серия Номеров Строки»'),
+            }, code='series_no')
+
         return queryset
 
     def update_latest_no(self, pk: int, new_series: str):
@@ -79,7 +95,7 @@ class SeriesCreateSerializerMixin:
         «Вы не можете присвоить новые номера из серии номеров %1» (%1 = SeriesCode)
         """
         if new_series >= ending_no:
-            raise ValidationError({
+            raise APIException({
                 self.validator.field: _(f'Вы не можете присвоить новые номера из серии номеров {code}')
             }, code='series_no')
         """
@@ -109,7 +125,8 @@ class SeriesCreateSerializerMixin:
     def save(self, **kwargs):
         field_name: str = self.validator.field
         field_value: str = self.validator.field_value
-        # if user didn't fill a field 'code' -> generate new series no
+        new_series: str = ''
+        # if the user doesn't fill a field 'code' we will generate a new series number.
         if len(field_value) == 0:
             # Get query with the latest serial number
             queryset = self.get_latest_code()
@@ -120,7 +137,7 @@ class SeriesCreateSerializerMixin:
             generate_new_serial_no = False
             # Trying to generate new serial no
             for n in range(self.max_counts_attempt_get_unique_serial_no):
-                new_series: str = self.calculate_next_series_no(
+                new_series = self.calculate_next_series_no(
                     last_no_used=last_no_used,
                     warning_no=warning_no,
                     ending_no=ending_no,
@@ -128,7 +145,7 @@ class SeriesCreateSerializerMixin:
                 )
                 if new_series.strip() == '':
                     # Failure to generate a new serial number code
-                    raise ValidationError({
+                    raise APIException({
                         field_name: _(
                             f'Не удалось сгенерировать новый «Код» для «Серии Номеров» {code}')
                     }, code='series_no')
@@ -146,13 +163,13 @@ class SeriesCreateSerializerMixin:
                         generate_new_serial_no = True
                         break
 
-            if not generate_new_serial_no:
-                # Failure to generate a new serial number code
-                raise ValidationError({
-                    field_name: _(
-                        f'Не удалось сгенерировать новый «Код» для «Серии Номеров» {code} '
-                        f'за максимальное число доступных попыток')
-                }, code='series_no')
+                if not generate_new_serial_no:
+                    # Failure to generate a new serial number code
+                    raise APIException({
+                        field_name: _(
+                            f'Не удалось сгенерировать новый «Код» для «Серии Номеров» {code} '
+                            f'за максимальное число доступных попыток')
+                    }, code='series_no')
 
             self.update_latest_no(pk=queryset.pk, new_series=new_series)
             kwargs[field_name] = new_series
