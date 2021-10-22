@@ -111,7 +111,7 @@ class ServicePriceModelViewSet(AtomicModelViewSet, viewsets.ModelViewSet):
     responses={status.HTTP_204_NO_CONTENT: openapi.Response(_('Код серии номеров для удаления'), NoSeriesSerializer)}
 ))
 class NoSeriesViewSet(AtomicModelViewSet, viewsets.ModelViewSet):
-    queryset = NoSeries.no_series.all()
+    queryset = NoSeries.objects.all()
     serializer_class = NoSeriesSerializer
     serializer_classes = {
         'create': NoSeriesSerializer,
