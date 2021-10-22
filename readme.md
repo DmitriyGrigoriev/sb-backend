@@ -1,4 +1,4 @@
-![Alt text](static/images/favicon-192x192.png?raw=true "smart-billing")
+![Alt text](static/images/banner-96x96.png?raw=true "smart-billing")
 
 ### УМНЫЙ БИЛЛИНГ: 
 * Это автоматизация расчёта услуг ВЭД любой сложности
