@@ -110,7 +110,6 @@ class ServiceListSerializer(TemplateSerializer[Service]):
                                           )
     price_date = serializers.DateField(read_only=True)
     prices = ServicePriceSerializer(many=True)
-    # prices = serializers.PrimaryKeyRelatedField(label=_('НаServiceCreateSerializerстройка цены'), read_only=True, many=True,)
 
     class Meta:
         model = Service
