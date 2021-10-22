@@ -1,12 +1,15 @@
 from django.urls import reverse_lazy
 from config.settings import *
 from config.function import set_classes
+#from config.group import CreateTestGroup
+# Create test groups
+# CreateTestGroup()
 
 DEBUG = True
 
 DOMAIN = env.str('DEVDOMAIN')
 ALLOWED_HOSTS = env.list('DEVALLOWED_HOSTS', default=['*'])
-
+SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'] = timedelta(minutes=25)
 # Add some classes to REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES']
 # that give an ability to perform REST queries without JWT tokens
 auth_classes = set_classes(
