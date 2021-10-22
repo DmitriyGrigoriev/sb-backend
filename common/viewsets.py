@@ -1,9 +1,8 @@
 # Forked: https://gist.github.com/prudnikov/3a968a1ee1cf9b02730cc40bc1d3d9f2
-import json
 from django.db import transaction
 from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
-from typing import NamedTuple
+from . services import PaginationData
 
 
 __all__ = ['AtomicCreateModelMixin', 'AtomicUpdateModelMixin', 'AtomicDestroyModelMixin',
@@ -11,30 +10,9 @@ __all__ = ['AtomicCreateModelMixin', 'AtomicUpdateModelMixin', 'AtomicDestroyMod
 
 
 class AtomicCreateModelMixin(mixins.CreateModelMixin):
-    serialize_warning: NamedTuple = None
-
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
-
-    def perform_create(self, serializer):
-        result = super().perform_create(serializer=serializer)
-        self.serialize_warning = serializer.warn
-        return result
-
-    def get_success_headers(self, data):
-        headers = super().get_success_headers(data)
-        try:
-            if hasattr(self, 'serialize_warning') \
-                    and self.serialize_warning is not None \
-                    and len(self.serialize_warning) > 0:
-
-                headers['Warning'] = json.dumps(
-                    self.serialize_warning._asdict(),
-                )
-        except (TypeError, KeyError):
-            return headers
-        return headers
 
 
 class AtomicUpdateModelMixin(mixins.UpdateModelMixin):
@@ -60,6 +38,7 @@ class AtomicModelViewSet(AtomicCreateModelMixin,
                          mixins.ListModelMixin,
                          GenericViewSet):
 
+    pagination_class = PaginationData
     serializer_classes = {}
 
     def get_serializer_class(self):
@@ -67,3 +46,26 @@ class AtomicModelViewSet(AtomicCreateModelMixin,
             self.serializer_class = self.serializer_classes.get(self.action)
 
         return super().get_serializer_class()
+
+
+# class SeriesModelViewSet(AtomicModelViewSet):
+#     serialize_warning: NamedTuple = None
+#
+#     def perform_create(self, serializer):
+#         result = super().perform_create(serializer=serializer)
+#         self.serialize_warning = serializer.warn
+#         return result
+#
+#     def get_success_headers(self, data):
+#         headers = super().get_success_headers(data)
+#         try:
+#             if hasattr(self, 'serialize_warning') \
+#                     and self.serialize_warning is not None \
+#                     and len(self.serialize_warning) > 0:
+#
+#                 headers['Warning'] = json.dumps(
+#                     self.serialize_warning._asdict(),
+#                 )
+#         except (TypeError, KeyError):
+#             return headers
+#         return headers
