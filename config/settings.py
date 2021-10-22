@@ -32,6 +32,7 @@ DJANGO_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
+    'django.contrib.admindocs',
     # rest API implementation library for django
     'rest_framework',
     # JWT authentication backend library
@@ -52,6 +53,7 @@ LOCAL_APPS = [
     # 'apps.transportconf.apps.TransportConfig',
     'apps.settings.apps.SettingsConfig',
     'phonenumber_field',
+    # 'apps.cms.apps.CmsConfig',
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -62,6 +64,10 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    # 'django.contrib.admindocs.middleware.XViewMiddleware',
+    # 'django.middleware.locale.LocaleMiddleware',
+    'concurrency.middleware.ConcurrencyMiddleware',
+    # 'common.middleware.ConcurrencyMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # middleware from django-cors-headers
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -70,6 +76,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CONCURRENCY_HANDLER409 = 'common.handlers.conflict'
+CONCURRENCY_POLICY = 2
 # DEBUG
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#debug
@@ -247,13 +255,13 @@ REST_FRAMEWORK = {
         # 'rest_framework.authentication.TokenAuthentication',
     ),
     # 'DEFAULT_PAGINATION_CLASS':
-    #     'rest_framework_json_api.pagination.PageNumberPagination',
-    # 'PAGE_SIZE': 25,
+    #     'rest_framework.pagination.LimitOffsetPagination',
+    # 'PAGE_SIZE': 10,
     # 'TEST_REQUEST_DEFAULT_FORMAT': 'json',
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    # 'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DATETIME_FORMAT': "%d.%m.%Y %H:%M:%S",
+    # 'EXCEPTION_HANDLER': 'common.exps_handler.drf_exception_handler',
 }
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -301,6 +309,7 @@ DJOSER = {
         'user_delete': 'apps.users.serializers.UserDeleteSerializer',
     },
     'TOKEN_MODEL': None,
+    'HIDE_USERS': False
     # 'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
 }
 
