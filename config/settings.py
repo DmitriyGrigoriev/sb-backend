@@ -52,7 +52,7 @@ LOCAL_APPS = [
     'apps.users.apps.UsersConfig',
     # 'apps.transportconf.apps.TransportConfig',
     'apps.settings.apps.SettingsConfig',
-    'phonenumber_field',
+    # 'phonenumber_field',
     # 'apps.cms.apps.CmsConfig',
 ]
 
