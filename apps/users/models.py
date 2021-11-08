@@ -13,7 +13,7 @@ class UserManager(BaseUserManager):
         Creates and saves a User with the given username, email and password.
         """
         user = self.model(email=self.normalize_email(email),
-                          is_active=False,
+                          is_active=True,
                           is_staff=is_staff,
                           is_superuser=is_superuser,
                           last_login=timezone.now(),
