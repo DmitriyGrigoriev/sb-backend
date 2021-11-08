@@ -20,7 +20,7 @@ urlpatterns = [
     # path to djoser end points
     # path('auth/', include('djoser.urls')), ## replace djoser.urls to users.urls
     # add some filters
-    path('auth/', include('users.urls')),
+    path('auth/', include('apps.users.urls')),
     ### https://djoser.readthedocs.io/en/latest/authentication_backends.html
     ### Disable Token Based Authentication
     # path('api/auth/', include('djoser.urls.authtoken')),
