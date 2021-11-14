@@ -7,6 +7,7 @@ https://docs.djangoproject.com/en/dev/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/dev/ref/settings/
 """
+import os
 import environ
 from datetime import timedelta
 
@@ -148,7 +149,7 @@ SITE = 1
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-root
 # ~projects/broker/backend/static
-STATIC_ROOT = str(BASE_DIR('static'))
+# STATIC_ROOT = str(BASE_DIR('static'))
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = '/static/'
@@ -156,10 +157,7 @@ STATIC_URL = '/static/'
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 # Настройка STATICFILES_DIRS указывает каталоги, которые проверяются на наличие статических файлов.
 # может содержать статические файлы, которые не относятся ни к одному из приложений.
-STATICFILES_DIRS = [
-    # ~/projects/broker/staticfiles
-    str(ROOT_DIR('staticfiles')),
-]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
@@ -170,7 +168,7 @@ STATICFILES_FINDERS = [
 # MEDIA CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#media-root
-MEDIA_ROOT = str(BASE_DIR('media'))
+# MEDIA_ROOT = str(BASE_DIR('media'))
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = '/media/'
