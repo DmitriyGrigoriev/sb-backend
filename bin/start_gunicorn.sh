@@ -9,8 +9,8 @@ echo "Starting $NAME"
 # Activate the virtual environment
 cd $DJANGODIR
 
-source ../env/bin/activate
-exec gunicorn -c "../config/gunicorn_config.py" config.wsgi
+source ./env/bin/activate
+exec gunicorn -c "./config/gunicorn_config.py" config.wsgi
 
 # source /home/www/code/backend/sb/env/bin/activate
 #cd /home/www/code/backend/sb
