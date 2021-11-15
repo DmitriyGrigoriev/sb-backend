@@ -1,9 +1,9 @@
 import environ
+# https://michal.karzynski.pl/blog/2013/06/09/django-nginx-gunicorn-virtualenv-supervisor/
+BASE_DIR = environ.Path(__file__) - 2
 # Load operating system environment variables and then prepare to use them
 env = environ.Env()
-# reading .env file ~/projects/broker/config/.env
-env_file = env.str('GUNICORN_CONFDIR')+'/.env'
-environ.Env.read_env(env_file)
+environ.Env.read_env(BASE_DIR('config/.env'))
 
 command = env.str('GUNICORN_COMMAND')
 pythonpath = env.str('GUNICORN_PYTHONPATH')

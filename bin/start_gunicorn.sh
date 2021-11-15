@@ -1,4 +1,6 @@
 #!/bin/bash
+
+# https://michal.karzynski.pl/blog/2013/06/09/django-nginx-gunicorn-virtualenv-supervisor/
 NAME="smart-billing"                              # Name of the application
 DJANGODIR=/home/www/code/backend/sb               # Django project directory
 
