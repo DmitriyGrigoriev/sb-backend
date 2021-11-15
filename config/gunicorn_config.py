@@ -13,5 +13,3 @@ user = env.str('GUNICORN_USER')
 limit_request_fields = env.int('GUNICORN_LIMIT_REQUEST_FIELDS')
 limit_request_fields_SIZE = env.int('GUNICORN_LIMIT_REQUEST_FIELDS_SIZE')
 raw_env = env.str('GUNICORN_RAW_ENV')
-stdout_logfile = env.str('GUNICORN_STDOUT_LOGFILE')
-redirect_stderr = True
