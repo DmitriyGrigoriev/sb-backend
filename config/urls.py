@@ -43,7 +43,10 @@ urlpatterns = [
     # path('api/v1/', include('apps.api.v1.cms.urls'))
 
 ]
+
+urlpatterns += doc_api_urls
+
 # Todo Решить позже делать ли документацию api публичной
 if settings.DEBUG:
-    urlpatterns += doc_api_urls
+    # urlpatterns += doc_api_urls
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
