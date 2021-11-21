@@ -46,6 +46,7 @@ THIRD_PARTY_APPS = [
     # 'djmoney',
     # 'rest_framework.authtoken',
     'djoser',
+    'drf_yasg',
     # 'rest_framework_simplejwt.token_blacklist',
 ]
 
