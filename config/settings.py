@@ -153,7 +153,7 @@ SITE = 1
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 # Настройка STATICFILES_DIRS указывает каталоги, которые проверяются на наличие статических файлов.
@@ -173,7 +173,7 @@ STATICFILES_FINDERS = [
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / "mediafiles"
+MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 
 # URL Configuration
 # ------------------------------------------------------------------------------
