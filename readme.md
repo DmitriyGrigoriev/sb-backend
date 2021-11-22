@@ -13,7 +13,7 @@
 
 ### Документация
 
-[smart-billing.ru/swagger/](http://docs.smart-billing.ru/) is the full reference for Smart-Billing, and includes guides for backend developers, alongside release notes and our roadmap.
+[smart-billing.ru](http://smart-billing.ru/swagger/) 
 
 ### License
 
