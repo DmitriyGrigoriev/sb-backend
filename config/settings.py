@@ -61,7 +61,7 @@ LOCAL_APPS = [
     'apps.authentication.config.AuthConfig',
     # 'apps.transportconf.apps.TransportConfig',
     'apps.settings.apps.SettingsConfig',
-    'apps.main'
+    # 'apps.main'
     # 'phonenumber_field',
     # 'apps.cms.apps.CmsConfig',
 ]
@@ -198,11 +198,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(BASE_DIR, 'apps/core/templates'),
-        ],
+        # 'DIRS': [
+        #     os.path.join(BASE_DIR, 'apps/core/templates'),
+        # ],
         # 'DIRS': [TEMPLATE_DIR],
-        # 'DIRS': STATICFILES_DIRS,
+        'DIRS': STATICFILES_DIRS,
         'OPTIONS': {
             'debug': DEBUG,
             'loaders': [
