@@ -10,11 +10,10 @@
 * Учёт: Контролирует движение денег
 * Детализацию:  Устраняет ошибки в учете
 
-Узнайте больше на [smart-billing.ru](http://smart-billing.ru/).
 
 ### Документация
 
-[docs.smart-billing.ru](http://docs.smart-billing.ru/) is the full reference for Smart-Billing, and includes guides for backend developers, alongside release notes and our roadmap.
+[smart-billing.ru/swagger/](http://docs.smart-billing.ru/) is the full reference for Smart-Billing, and includes guides for backend developers, alongside release notes and our roadmap.
 
 ### License
 
