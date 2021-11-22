@@ -17,6 +17,12 @@ ROOT_DIR = environ.Path(__file__) - 3
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 # BASE_DIR = /home/www/projects/broker/backend
 BASE_DIR = environ.Path(__file__) - 2
+# soft-ui-free
+CORE_DIR = os.path.join(BASE_DIR, 'apps')
+# ROOT_URLCONF = 'core.urls'
+LOGIN_REDIRECT_URL = "home"   # Route defined in app/urls.py
+LOGOUT_REDIRECT_URL = "home"  # Route defined in app/urls.py
+# TEMPLATE_DIR = os.path.join(CORE_DIR, "core/templates")  # ROOT dir for templates
 
 # Load operating system environment variables and then prepare to use them
 env = environ.Env()
@@ -47,11 +53,13 @@ THIRD_PARTY_APPS = [
     # 'rest_framework.authtoken',
     'djoser',
     'drf_yasg',
-    # 'rest_framework_simplejwt.token_blacklist',
+    'main',
+    # 'rest_framework_si    mplejwt.token_blacklist',
 ]
 
 LOCAL_APPS = [
     'apps.users.apps.UsersConfig',
+    'apps.authentication.config.AuthConfig',
     # 'apps.transportconf.apps.TransportConfig',
     'apps.settings.apps.SettingsConfig',
     # 'phonenumber_field',
@@ -65,6 +73,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # ------------------------------------------------------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # 'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     # 'django.contrib.admindocs.middleware.XViewMiddleware',
     # 'django.middleware.locale.LocaleMiddleware',
@@ -189,7 +198,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': STATICFILES_DIRS,
+        'DIRS': [
+            os.path.join(BASE_DIR, 'apps/core/templates'),
+        ],
+        # 'DIRS': [TEMPLATE_DIR],
+        # 'DIRS': STATICFILES_DIRS,
         'OPTIONS': {
             'debug': DEBUG,
             'loaders': [

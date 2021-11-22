@@ -30,7 +30,7 @@ REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = tuple(['rest_framework.permission
 
 INSTALLED_APPS += [
     # 'corsheaders',
-    'drf_yasg',
+    #'drf_yasg',
 ]
 ###  How to integrate swagger with JWT
 SWAGGER_SETTINGS = {

@@ -41,6 +41,7 @@ urlpatterns = [
 
     path('api/v1/', include('apps.api.v1.settings.urls')),
     # path('api/v1/', include('apps.api.v1.cms.urls'))
+    path('', include('apps.main.urls')),
 
 ]
 
