@@ -14,7 +14,7 @@
 
 ### Документация
 
-[docs.smart-billing.ru](https://docs.smart-billing.ru/) is the full reference for Smart-Billing, and includes guides for backend developers, alongside release notes and our roadmap.
+[docs.smart-billing.ru](http://docs.smart-billing.ru/) is the full reference for Smart-Billing, and includes guides for backend developers, alongside release notes and our roadmap.
 
 ### License
 
