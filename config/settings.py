@@ -18,10 +18,10 @@ ROOT_DIR = environ.Path(__file__) - 3
 # BASE_DIR = /home/www/projects/broker/backend
 BASE_DIR = environ.Path(__file__) - 2
 # soft-ui-free
-CORE_DIR = os.path.join(BASE_DIR, 'apps')
+# CORE_DIR = os.path.join(BASE_DIR, 'apps')
 # ROOT_URLCONF = 'core.urls'
-LOGIN_REDIRECT_URL = "home"   # Route defined in app/urls.py
-LOGOUT_REDIRECT_URL = "home"  # Route defined in app/urls.py
+# LOGIN_REDIRECT_URL = "home"   # Route defined in app/urls.py
+# LOGOUT_REDIRECT_URL = "home"  # Route defined in app/urls.py
 # TEMPLATE_DIR = os.path.join(CORE_DIR, "core/templates")  # ROOT dir for templates
 
 # Load operating system environment variables and then prepare to use them
@@ -53,7 +53,6 @@ THIRD_PARTY_APPS = [
     # 'rest_framework.authtoken',
     'djoser',
     'drf_yasg',
-    'main',
     # 'rest_framework_si    mplejwt.token_blacklist',
 ]
 
@@ -62,6 +61,7 @@ LOCAL_APPS = [
     'apps.authentication.config.AuthConfig',
     # 'apps.transportconf.apps.TransportConfig',
     'apps.settings.apps.SettingsConfig',
+    'apps.main'
     # 'phonenumber_field',
     # 'apps.cms.apps.CmsConfig',
 ]
