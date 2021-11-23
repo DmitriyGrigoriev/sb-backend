@@ -61,7 +61,7 @@ LOCAL_APPS = [
     'apps.authentication.config.AuthConfig',
     # 'apps.transportconf.apps.TransportConfig',
     'apps.settings.apps.SettingsConfig',
-    # 'apps.main'
+    'apps.main'
     # 'phonenumber_field',
     # 'apps.cms.apps.CmsConfig',
 ]
@@ -108,10 +108,7 @@ EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
 # MANAGER CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#admins
-ADMINS = [
-    ('dimag', 'dimag@ntbroker.ru'),
-]
-
+ADMINS = []
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
 
@@ -168,7 +165,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 # Настройка STATICFILES_DIRS указывает каталоги, которые проверяются на наличие статических файлов.
 # может содержать статические файлы, которые не относятся ни к одному из приложений.
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'), os.path.join(BASE_DIR, 'apps/core/templates'),]
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
