@@ -153,22 +153,17 @@ USE_TZ = True
 SITE = 1
 
 # STATIC FILE CONFIGURATION
-# ------------------------------------------------------------------------------
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#static-root
-# ~projects/broker/backend/static
-# STATIC_ROOT = str(BASE_DIR('static'))
-
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 # Настройка STATICFILES_DIRS указывает каталоги, которые проверяются на наличие статических файлов.
 # может содержать статические файлы, которые не относятся ни к одному из приложений.
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-    os.path.join(BASE_DIR, 'apps/core/static'),
-    os.path.join(BASE_DIR, 'apps/core/templates'),
+    os.path.join(BASE_DIR, 'static/'),
+    os.path.join(BASE_DIR, 'apps/core/static/'),
+    os.path.join(BASE_DIR, 'apps/core/templates/'),
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
@@ -179,9 +174,6 @@ STATICFILES_FINDERS = [
 
 # MEDIA CONFIGURATION
 # ------------------------------------------------------------------------------
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#media-root
-# MEDIA_ROOT = str(BASE_DIR('media'))
-
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
