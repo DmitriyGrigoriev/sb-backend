@@ -10,13 +10,14 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 import os
 import environ
 from datetime import timedelta
+from .function import addbs
 
 # from corsheaders.defaults import default_headers
 # ROOT_DIR = /home/www/projects/broker
 ROOT_DIR = environ.Path(__file__) - 3
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 # BASE_DIR = /home/www/projects/broker/backend
-BASE_DIR = environ.Path(__file__) - 2
+BASE_DIR = (environ.Path(__file__) - 2).root + os.path.sep
 # ROOT_URLCONF = 'core.urls'
 # LOGIN_REDIRECT_URL = "home"   # Route defined in app/urls.py
 # LOGOUT_REDIRECT_URL = "home"  # Route defined in app/urls.py
@@ -24,7 +25,7 @@ BASE_DIR = environ.Path(__file__) - 2
 # Load operating system environment variables and then prepare to use them
 env = environ.Env()
 # reading .env file ~/projects/broker/config/.env
-environ.Env.read_env(BASE_DIR('config/.env'))
+environ.Env.read_env(BASE_DIR + 'config/.env' )
 
 # APP CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -152,19 +153,19 @@ SITE = 1
 # STATIC FILE CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
+STATIC_ROOT = os.path.join(BASE_DIR, addbs('staticfiles'))
 
 # SOFT-UI-DESIGN-TEMPLATES
 # ------------------------------------------------------------------------------
-CORE_DIR = os.path.join(BASE_DIR, 'apps/core/')
-TEMPLATE_DIR = os.path.join(BASE_DIR, ''.join(CORE_DIR + 'templates/'))  # ROOT dir for templates
+CORE_DIR = os.path.join(BASE_DIR, addbs('apps/core'))
+TEMPLATE_DIR = os.path.join(BASE_DIR, CORE_DIR + addbs('templates'))  # ROOT dir for templates
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 # Настройка STATICFILES_DIRS указывает каталоги, которые проверяются на наличие статических файлов.
 # может содержать статические файлы, которые не относятся ни к одному из приложений.
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, '/static/'),
-    os.path.join(BASE_DIR, CORE_DIR + '/static/'),
+    os.path.join(BASE_DIR, addbs('static')),
+    os.path.join(BASE_DIR, CORE_DIR + addbs('static')),
     # os.path.join(BASE_DIR, 'apps/core/templates/'),
 ]
 
@@ -178,7 +179,7 @@ STATICFILES_FINDERS = [
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
+MEDIA_ROOT = os.path.join(BASE_DIR, addbs('mediafiles'))
 
 # URL Configuration
 # ------------------------------------------------------------------------------
@@ -195,7 +196,8 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         # 'DIRS': [
         #     os.path.join(BASE_DIR, 'apps/core/templates'),
-        # ],
+        # ],mc
+
         'DIRS': [TEMPLATE_DIR],
         # 'DIRS': STATICFILES_DIRS,
         'OPTIONS': {
