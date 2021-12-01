@@ -333,15 +333,10 @@ if not DEBUG:
 #
     # Host adress for right auth
     from corsheaders.defaults import default_headers
-    CORS_ORIGIN_WHITELIST = [
-            'http://demo.smart-billing.ru',
-    ]
-    #CORS_ORIGIN_ALLOW_ALL = True
-    #CORS_ALLOW_CREDENTIALS = True
-    #CORS_ALLOWED_ORIGINS = ["http://192.168.0.2"]
-    #CORS_ORIGIN_REGEX_WHITELIST = CORS_ORIGIN_WHITELIST
+    CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST', )
     CORS_ALLOW_HEADERS = list(default_headers)
-
+    # CORS_ORIGIN_ALLOW_ALL = True
+    # CORS_ALLOW_CREDENTIALS = True
 #     # Sentry Configuration
 #     SENTRY_DSN = env.str('SENTRY_DSN')
 #     SENTRY_CLIENT = 'raven.contrib.django.raven_compat.DjangoClient'
