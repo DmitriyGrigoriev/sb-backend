@@ -12,7 +12,6 @@ import environ
 from datetime import timedelta
 from .function import addbs
 
-# from corsheaders.defaults import default_headers
 # ROOT_DIR = /home/www/projects/broker
 ROOT_DIR = environ.Path(__file__) - 3
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -45,6 +44,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    'corsheaders',
     'django_filters',
     'django_extensions',
     # 'djmoney',
@@ -166,7 +166,6 @@ TEMPLATE_DIR = os.path.join(BASE_DIR, CORE_DIR + addbs('templates'))  # ROOT dir
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, addbs('static')),
     os.path.join(BASE_DIR, CORE_DIR + addbs('static')),
-    # os.path.join(BASE_DIR, 'apps/core/templates/'),
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
@@ -324,20 +323,22 @@ DJOSER = {
     # 'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
 }
 
-# if not DEBUG:
+if not DEBUG:
 #     # raven sentry client
 #     # See https://docs.sentry.io/clients/python/integrations/django/
 #     INSTALLED_APPS += ['raven.contrib.django.raven_compat']
 #     RAVEN_MIDDLEWARE = ['raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware']
 #     MIDDLEWARE = RAVEN_MIDDLEWARE + MIDDLEWARE
 #
-#     # Host adress for right auth
-#     # CORS_ORIGIN_WHITELIST = [
-#     #     'http://10.20.2.19',
-#     # ]
-#     # CORS_ALLOW_HEADERS = list(default_headers) + [
-#     #     'content-type',
-#     # ]
+    # Host adress for right auth
+    from corsheaders.defaults import default_headers
+    # CORS_ORIGIN_WHITELIST = [
+    #     'http://10.20.2.19',
+    # ]
+    CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST', )
+    CORS_ALLOW_HEADERS = list(default_headers) + [
+        'content-type',
+    ]
 #
 #     # Sentry Configuration
 #     SENTRY_DSN = env.str('SENTRY_DSN')
