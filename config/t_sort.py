@@ -19,18 +19,12 @@ operations = [
 
 
 def filter(operations: list) -> list:
-  rows_by_timestamp = sorted(operations, key=lambda r: (r['id'], r['timestamp']))
-  groups = {}
+  rows_by_timestamp = sorted(operations, key=itemgetter('id', 'timestamp'), reverse=True)
   unique_list = []
   for elements, items in groupby(rows_by_timestamp, key=itemgetter('id')):
-      if len(groups) > 0:
-          unique_list.append(groups)
-      groups = {}
       for row in items:
-          groups.update(row)
-          # print(' ', row)
-
-  unique_list.append(groups)
+          unique_list.append(row)
+          break
 
   print(unique_list)
 
