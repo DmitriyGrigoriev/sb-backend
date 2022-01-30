@@ -1,5 +1,5 @@
 # Есть не сортированный список операций:
-#from typing import Set, Any
+from typing import Set, Any, List
 from operator import itemgetter
 from itertools import groupby
 
@@ -21,7 +21,7 @@ operations = [
 def filter(operations: list) -> list:
   rows_by_timestamp = sorted(operations, key=itemgetter('id', 'timestamp'), reverse=True)
   unique_list = []
-  for elements, items in groupby(rows_by_timestamp, key=itemgetter('id')):
+  for _, items in groupby(rows_by_timestamp, key=itemgetter('id')):
       for row in items:
           unique_list.append(row)
           break
@@ -31,8 +31,21 @@ def filter(operations: list) -> list:
   return unique_list
 
 
+class Solution:
+    @classmethod
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        hashmap = {}
+        for i in range(len(nums)):
+            hashmap[nums[i]] = i
+        for i in range(len(nums)):
+            complement = target - nums[i]
+            if complement in hashmap and hashmap[complement] != i:
+                return [i, hashmap[complement]]
+
 def main():
-    filter(operations)
+    # filter(operations)
+    Solution().twoSum(nums = [2,7,11,15], target = 9)
+
 
 if __name__ == '__main__':
     main()

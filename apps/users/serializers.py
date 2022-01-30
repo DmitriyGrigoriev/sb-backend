@@ -1,12 +1,17 @@
+from typing import Any
 from djoser.serializers import UserSerializer
 from djoser.serializers import UserCreateSerializer
+from djoser.serializers import SendEmailResetSerializer
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from rest_framework.validators import UniqueValidator
+from rest_framework.exceptions import ErrorDetail, ValidationError
+from djoser.conf import settings
 
 User = get_user_model()
+
 class CreateGroupSerializer(serializers.ModelSerializer):
     queryset = Group.objects.all()
     class Meta:
@@ -68,13 +73,14 @@ class UserRoleUpdateSerializer(serializers.ModelSerializer):
 
 
 class UserCreateSerializer(UserCreateSerializer):
-    registered_at = serializers.DateTimeField(format='%H:%M %d.%m.%Y', read_only=True)
+    nickname = serializers.CharField()
     avatar = serializers.SerializerMethodField(read_only=True)
     first_name = serializers.CharField()
     last_name = serializers.CharField()
     full_name = serializers.SerializerMethodField(read_only=True)
     short_name = serializers.SerializerMethodField(read_only=True)
     role = CreateGroupSerializer(source='groups', many=True)
+    registered_at = serializers.DateTimeField(format='%H:%M %d.%m.%Y', read_only=True)
 
     def get_avatar(self, obj):
         return obj.avatar.url if obj.avatar else ''
@@ -88,9 +94,12 @@ class UserCreateSerializer(UserCreateSerializer):
 
     class Meta(UserCreateSerializer.Meta):
         model = User
-        fields = [
-            'id',
-            User.USERNAME_FIELD,
+        # Don't remove fields after password (needs for manage users Quasar page)
+        fields = tuple(User.REQUIRED_FIELDS) + (
+            'nickname',
+            settings.LOGIN_FIELD,
+            settings.USER_ID_FIELD,
+            'password',
             'avatar',
             'first_name',
             'middle_name',
@@ -103,7 +112,7 @@ class UserCreateSerializer(UserCreateSerializer):
             'is_active',
             'registered_at',
             'role'
-        ]
+        )
 
 
 class UserSerializer(UserSerializer):
@@ -121,6 +130,7 @@ class UserSerializer(UserSerializer):
             'id',
             'email',
             'avatar',
+            'nickname',
             'short_name',
             'full_name',
             'is_admin',
@@ -137,3 +147,36 @@ class UserSerializer(UserSerializer):
             if instance.role is not None:
                 for item in instance.role:
                     Group.objects.get_or_create(name=item.name)
+
+
+class SendEmailResetSerializer(SendEmailResetSerializer):
+    """Seek user by nickname and get email address"""
+    nickname = serializers.CharField(required=True)
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        user = self.get_nickname(data=kwargs.get('data'))
+
+        if user:
+            email = getattr(user, user.EMAIL_FIELD, None)
+
+        if not kwargs.get('data').get(user.EMAIL_FIELD):
+            kwargs['data'][user.EMAIL_FIELD] = email
+
+        super(SendEmailResetSerializer, self).__init__(*args, **kwargs)
+
+
+    def get_nickname(self, data, is_active=True):
+        try:
+            user = User._default_manager.get(
+                is_active=is_active,
+                **{'nickname': data.get('nickname', "")},
+            )
+            if user.has_usable_password():
+                return user
+        except User.DoesNotExist:
+            pass
+            errors_nickname = [
+                ErrorDetail(_('Пользователь с таким псевдонимом не найден.'),
+                            code='nickname_not_found')
+            ]
+            raise ValidationError({'nickname': errors_nickname})

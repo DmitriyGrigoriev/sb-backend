@@ -12,6 +12,7 @@ ALLOWED_HOSTS = env.list('DEVALLOWED_HOSTS', default=['*'])
 SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'] = timedelta(minutes=25)
 # Add some classes to REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES']
 # that give an ability to perform REST queries without JWT tokens
+
 auth_classes = set_classes(
     REST_FRAMEWORK,
     'DEFAULT_AUTHENTICATION_CLASSES',
@@ -20,6 +21,7 @@ auth_classes = set_classes(
         'rest_framework.authentication.SessionAuthentication',
      )
 )
+auth_classes = ''
 if len(auth_classes) > 0:
     del REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES']
     REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = auth_classes
@@ -51,11 +53,11 @@ SWAGGER_SETTINGS = {
 
 # EMAIL CONFIGURATION
 # ------------------------------------------------------------------------------
-EMAIL_HOST = env.str('DEVEMAIL_HOST', default='mailhog')
-EMAIL_PORT = env.int('DEVEMAIL_PORT', default='1025')
-EMAIL_HOST_USER = env.str('DEVEMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = env.str('DEVEMAIL_HOST_PASSWORD', default='')
-EMAIL_USE_TLS = env.bool('DEVEMAIL_USE_TLS', default=True)
+# EMAIL_HOST = env.str('DEVEMAIL_HOST', default='mailhog')
+# EMAIL_PORT = env.int('DEVEMAIL_PORT', default='1025')
+# EMAIL_HOST_USER = env.str('DEVEMAIL_HOST_USER', default='')
+# EMAIL_HOST_PASSWORD = env.str('DEVEMAIL_HOST_PASSWORD', default='')
+# EMAIL_USE_TLS = env.bool('DEVEMAIL_USE_TLS', default=True)
 
 CORS_ORIGIN_ALLOW_ALL = True
 # CorsHeaders settings from django-cors-headers

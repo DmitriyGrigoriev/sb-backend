@@ -11,6 +11,7 @@ import os
 import environ
 from datetime import timedelta
 from .function import addbs
+from corsheaders.defaults import default_headers
 
 # ROOT_DIR = /home/www/projects/broker
 ROOT_DIR = environ.Path(__file__) - 3
@@ -39,8 +40,10 @@ DJANGO_APPS = [
     'django.contrib.admindocs',
     # rest API implementation library for django
     'rest_framework',
+    'rest_framework.authtoken',
+    'djoser',
     # JWT authentication backend library
-    'rest_framework_simplejwt'
+    # 'rest_framework_simplejwt'
 ]
 
 THIRD_PARTY_APPS = [
@@ -48,10 +51,8 @@ THIRD_PARTY_APPS = [
     'django_filters',
     'django_extensions',
     # 'djmoney',
-    # 'rest_framework.authtoken',
-    'djoser',
     'drf_yasg',
-    # 'rest_framework_si    mplejwt.token_blacklist',
+    # 'rest_framework_simplejwt.token_blacklist',
 ]
 
 LOCAL_APPS = [
@@ -70,7 +71,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # MIDDLEWARE CONFIGURATION
 # ------------------------------------------------------------------------------
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware', # middleware from django-cors-headers
     'django.middleware.security.SecurityMiddleware',
     # 'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -78,7 +79,6 @@ MIDDLEWARE = [
     # 'django.middleware.locale.LocaleMiddleware',
     'concurrency.middleware.ConcurrencyMiddleware',
     # 'common.middleware.ConcurrencyMiddleware',
-    #'corsheaders.middleware.CorsMiddleware',  # middleware from django-cors-headers
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -96,14 +96,6 @@ SECRET_KEY = env.str('SECRET_KEY')
 # DOMAINS
 DOMAIN = env.str('DOMAIN')
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', )
-# EMAIL CONFIGURATION
-# ------------------------------------------------------------------------------
-EMAIL_HOST = env.str('EMAIL_HOST', default='')
-EMAIL_PORT = env.int('EMAIL_PORT', default='587')
-EMAIL_HOST_USER = env.str('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD', default='')
-EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
-
 # MANAGER CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#admins
@@ -122,6 +114,7 @@ DATABASES = {
         'PASSWORD': env.str('POSTGRES_PASSWORD'),
         'HOST': env.str('POSTGRES_HOST'),
         'PORT': 5432,
+        # 'ATOMIC_REQUESTS': True #Important!
     },
 }
 
@@ -150,6 +143,7 @@ USE_L10N = True
 USE_TZ = True
 
 SITE = 1
+SITE_NAME = env.str('SITE_NAME', default='')
 
 # STATIC FILE CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
@@ -244,7 +238,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # AUTHENTICATION CONFIGURATION
 # ------------------------------------------------------------------------------
 AUTHENTICATION_BACKENDS = [
-
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -259,11 +252,11 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        # Token Base Authentication
+        # 'rest_framework.authentication.TokenAuthentication',
         # Json Web Token Authentication
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
-        # Token Base Authentication
-        # 'rest_framework.authentication.TokenAuthentication',
     ),
     # 'DEFAULT_PAGINATION_CLASS':
     #     'rest_framework.pagination.LimitOffsetPagination',
@@ -298,43 +291,73 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
-
+# EMAIL CONFIGURATION
+# https://dev.to/abderrahmanemustapha/how-to-send-email-with-django-and-gmail-in-production-the-right-way-24ab
+# ------------------------------------------------------------------------------
+EMAIL_BACKEND = env.str('EMAIL_BACKEND', default='')
+EMAIL_HOST = env.str('EMAIL_HOST', default='')
+EMAIL_PORT = env.int('EMAIL_PORT', default='587')
+EMAIL_HOST_USER = env.str('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+# DJOSER CONFIGURATION
+# ------------------------------------------------------------------------------
 # https://www.youtube.com/watch?v=CC3uxnYYdMM&list=PLJRGQoqpRwdfoa9591BcUS6NmMpZcvFsM&index=3&t=2s
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'USER_CREATE_PASSWORD_RETYPE': True,
+    # 'USERNAME_RESET_CONFIRM_RETYPE': True,
     'USERNAME_CHANGED_EMAIL_CONFIRMATION': True,
     'PASSWORD_CHANGED_EMAIL_CONFIRMATION': True,
     'SEND_CONFIRMATION_EMAIL': True,
     'SET_USERNAME_RETYPE': True,
     'SET_PASSWORD_RETYPE': True,
-    'PASSWORD_RESET_CONFIRM_URL': '/password-reset/confirm/{uid}/{token}',
-    'USERNAME_RESET_CONFIRM_URL': '/username-reset/confirm/{uid}/{token}',
+    'PASSWORD_RESET_CONFIRM_URL': '#/password-reset/confirm/{uid}/{token}',
+    'USERNAME_RESET_CONFIRM_URL': '#/username-reset/confirm/{uid}/{token}',
 
     'SEND_ACTIVATION_EMAIL': True,
-    'ACTIVATION_URL': 'activate/{uid}/{token}/',
+    'ACTIVATION_URL': '#/activate/{uid}/{token}/',
     'SERIALIZERS': {
+        'password_reset': 'apps.users.serializers.SendEmailResetSerializer',
         'user_create': 'apps.users.serializers.UserCreateSerializer',
+        'user_create_password_retype': 'apps.users.serializers.UserCreateSerializer',
         'user': 'apps.users.serializers.UserCreateSerializer',
         'current_user': 'apps.users.serializers.UserSerializer',
         'user_delete': 'apps.users.serializers.UserDeleteSerializer',
     },
+    'EMAIL': {
+        'activation': 'apps.users.email.ActivationEmail',
+        'confirmation': 'apps.users.email.ConfirmationEmail',
+        'password_reset': 'apps.users.email.PasswordResetEmail',
+        'password_changed_confirmation': 'apps.users.email.PasswordChangedConfirmationEmail',
+        'username_changed_confirmation': 'apps.users.email.UsernameChangedConfirmationEmail',
+        'username_reset': 'apps.users.email.UsernameResetEmail',
+    },
     'TOKEN_MODEL': None,
+    # 'TOKEN_MODEL': 'rest_framework.authtoken.models.Token',
     'HIDE_USERS': False
     # 'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
 }
+# Host adress for right auth
+# ------------------------------------------------------------------------------
+CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST', )
+CORS_ALLOW_HEADERS = list(default_headers)
 
-if not DEBUG:
+# if not DEBUG:
 #     # raven sentry client
 #     # See https://docs.sentry.io/clients/python/integrations/django/
 #     INSTALLED_APPS += ['raven.contrib.django.raven_compat']
 #     RAVEN_MIDDLEWARE = ['raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware']
 #     MIDDLEWARE = RAVEN_MIDDLEWARE + MIDDLEWARE
 #
-    # Host adress for right auth
-    from corsheaders.defaults import default_headers
-    CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST', )
-    CORS_ALLOW_HEADERS = list(default_headers)
+
+
+    # # Host adress for right auth
+    # from corsheaders.defaults import default_headers
+    # CORS_ORIGIN_WHITELIST = env.list('CORS_ORIGIN_WHITELIST', )
+    # CORS_ALLOW_HEADERS = list(default_headers)
+
+
     # CORS_ORIGIN_ALLOW_ALL = True
     # CORS_ALLOW_CREDENTIALS = True
 #     # Sentry Configuration
@@ -392,4 +415,3 @@ if not DEBUG:
 #         'DSN': SENTRY_DSN
 #     }
 # else:
-

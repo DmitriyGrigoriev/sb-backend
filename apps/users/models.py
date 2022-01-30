@@ -1,40 +1,83 @@
 from uuid import uuid4
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
-from django.db import models
+from rest_framework.exceptions import ErrorDetail, ValidationError
+from django.db import models, IntegrityError
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from common.constants import SexChoise
+from .validators import regex_nickname
 
 
 class UserManager(BaseUserManager):
-    def _create_user(self, email, password, is_staff, is_superuser, **extra_fields):
+    def _create_user(self, email, password, **extra_fields):
         """
-        Creates and saves a User with the given username, email and password.
+        Creates and return a `User` with email and password.
         """
+        nickname = extra_fields.get('nickname')
+
+        errors_nickname = [
+            ErrorDetail(_('Для завершения регистрации необходимо указать псевдоним.'),
+                        code='error_empty_nickname')
+        ]
+        errors_email = [
+            ErrorDetail(_('Для завершения регистрации необходимо указать адрес электронной почты.'),
+                        code='error_email')
+        ]
+        if not nickname:
+            raise ValidationError({'nickname': errors_nickname})
+        if not email:
+            raise ValidationError({'email': errors_email})
+
         user = self.model(email=self.normalize_email(email),
-                          is_active=True,
-                          is_staff=is_staff,
-                          is_superuser=is_superuser,
                           last_login=timezone.now(),
                           registered_at=timezone.now(),
                           **extra_fields)
         user.set_password(password)
-        user.save(using=self._db)
+
+        try:
+            user.save(using=self._db)
+        except IntegrityError as exc:
+            errors_nickname = [
+                ErrorDetail(_(f'Пользователь с таким псевдонимом {nickname} уже существует.'),
+                            code='error_integrity_nickname')
+            ]
+            if f'{nickname}' in str(exc):
+                raise ValidationError({'nickname': errors_nickname})
+
+            raise ValidationError(ErrorDetail(exc, code='user_integrity_error'))
+
         return user
 
     def create_user(self, email=None, password=None, **extra_fields):
-        is_staff = extra_fields.pop('is_staff', False)
-        is_superuser = extra_fields.pop('is_superuser', False)
-        return self._create_user(email, password, is_staff, is_superuser, **extra_fields)
+        """Create `User` with email and password"""
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+
+        return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
-        return self._create_user(email, password, is_staff=True, is_superuser=True, **extra_fields)
+        """Create and return `User` with permission superuser (admin)"""
+        extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_active') is not True:
+            raise ValueError(_('Суперпользователь должен иметь is_active=True.'))
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError(_('Суперпользователь должен иметь is_staff=True.'))
+
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError(_('Суперпользователь должен иметь is_superuser=True.'))
+
+        return self._create_user(email, password, **extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(verbose_name=_('Почта'), unique=True, max_length=255)
-    first_name = models.CharField(verbose_name=_('Имя'), max_length=30, default='')
+    nickname = models.CharField(verbose_name=_('Псевдоним'), max_length=20, unique=True, blank=False, validators=[regex_nickname])
+    first_name = models.CharField(verbose_name=_('Имя'), max_length=30, default='', blank=True,)
     middle_name = models.CharField(verbose_name=_('Фамилия'), max_length=80, default='', blank=True,)
     last_name = models.CharField(verbose_name=_('Отчество'), max_length=30, default='', blank=True,)
     avatar = models.ImageField(verbose_name=_('Фото профиля'), blank=True)
@@ -78,18 +121,17 @@ class User(AbstractBaseUser, PermissionsMixin):
         if (len(self.last_name) > 0):
             result = result + f'{self.last_name[0]}.'
         return result
-
     short_name.fget.short_description = _('Имя и инициалы')
 
     @property
     def unused_name(self):
-        return f'<{self.id}> пользователь не завершил регистрацию'
+        return f'<{self.niсkname}> пользователь не завершил регистрацию'
 
     def full_or_unused_name(self):
         if self.full_name:
-            return f'<{self.id}> {self.full_name}'
+            return f'<{self.niсkname}> {self.full_name}'
         return self.unused_name
-    full_or_unused_name.short_description = _('ID ФИО')
+    full_or_unused_name.short_description = _('<Псевдоним> ФИО')
 
     def get_full_name(self):
         return self.full_name

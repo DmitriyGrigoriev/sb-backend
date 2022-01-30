@@ -4,15 +4,21 @@ from rest_framework import filters
 from common.mixins import MixedPermission
 from common.viewsets import *
 from .serializers import *
+# from .token import rest_authtoken_generator
 
 class UserViewSet(UserViewSet):
     filter_backends = [filters.SearchFilter]
-    search_fields = ['first_name', 'middle_name', 'last_name', 'email', 'groups__name']
+    # search_fields = ['nickname', 'first_name', 'middle_name', 'last_name', 'email', 'groups__name']
+    # Add support rest_framework.authtoken.models.Token
+    # token_generator = rest_authtoken_generator
+
+    # def perform_create(self, serializer):
+    #     super(UserViewSet, self).perform_create(serializer)
     # filter_backends = (DjangoFilterBackend,)
     # filterset_class = UserFilter
     # pagination_class = PaginationData
 
-# Todo: The best decision may to disable this feature on the future
+# Todo: The best decision may to disable this feature in future
 ### «Role» («Роли»)
 class RoleModelViewSet(AtomicModelViewSet, MixedPermission, viewsets.ModelViewSet):
     """Создание, удаление или изменение справочника GROUP (роли)"""
@@ -45,3 +51,9 @@ class UserRoleModelViewSet(AtomicModelViewSet, viewsets.ModelViewSet):
     class Meta:
         model = User
         fields = ('id', 'groups__id',)
+
+
+# class ResetPasswordViewSet(AtomicModelViewSet, viewsets.ModelViewSet):
+#     class Meta:
+#         model = User
+#         fields = ('id', 'nickname', 'first_name', 'middle_name', 'last_name', 'email', 'groups__name',)

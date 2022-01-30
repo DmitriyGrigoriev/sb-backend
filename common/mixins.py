@@ -1,8 +1,11 @@
 from collections import namedtuple
+from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.validators import qs_exists, qs_filter
 from rest_framework.exceptions import APIException
 from apps.settings.models import NoSeriesLine, NoSeriesSetup
+
+User = get_user_model()
 
 class MixedPermission:
     """Миксин permissions для action"""

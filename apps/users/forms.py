@@ -18,7 +18,7 @@ class UserCreationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['email',]
+        fields = ['nickname','email',]
         # fields = ['email', 'first_name', 'middle_name', 'last_name']
 
     def clean_password2(self):
@@ -44,13 +44,13 @@ class UserChangeForm(forms.ModelForm):
     the user, but replaces the password field with admin's
     password hash display field.
     """
-    help_text = """Raw passwords are not stored, so there is no way to see this user's password,
-                   but you can change the password using <a href="../password/">this form</a>."""
+    help_text = """Необработанные пароли не сохраняются, поэтому нет возможности увидеть пароль этого пользователя,
+                   но вы можете изменить пароль с помощью <a href="../password/">этой формы</a>."""
     password = ReadOnlyPasswordHashField(label=_('Пароль'), help_text=help_text)
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'is_active', 'is_admin']
+        fields = ['nickname', 'email', 'password', 'is_active', 'is_admin']
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.

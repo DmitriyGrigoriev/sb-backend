@@ -24,7 +24,7 @@ class TemplateModel(models.Model):
             # https://github.com/aris-creator/shuupe/blob/161af6727176135ddb163bc185dc2e1eaddc1925/shuup/api/mixins.py
             ref_obj = list(exc.protected_objects)[0]._meta.verbose_name_plural
             raise AppsProtectedError(
-                detail=_(f'Этот объект нельзя удалить, так как на него имеется ссылка в таблице: «{ref_obj}».')
+                detail=_(f'Невозможно удалить данные, т.к на них имеется ссылка в таблице: «{ref_obj}».')
             )
         # if self.can_delete():
         #     super(TemplateModel, self).delete(using=using, keep_parents=keep_parents)

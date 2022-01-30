@@ -1,12 +1,12 @@
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Iterator
 from rest_framework import serializers
-# from rest_framework.exceptions import ValidationError
 from common.fields import VirtualBooleanField
 from common.exceptions import FieldValidationError
 from common.validators import SeriesCodeValidator
 from common.mixins import SeriesCreateSerializerMixin
 from common.serializers import TemplateSerializer
 from django.utils.translation import ugettext_lazy as _
+from apps.api.v1.settings.dataclasses import ServicePriceRow
 from apps.settings.models import *
 
 
@@ -149,17 +149,17 @@ class ServiceCreateSerializer(SeriesCreateSerializerMixin, TemplateSerializer[Se
             self.prices = validated_data.pop('prices', [])
             return validated_data
 
-        # @classmethod
-        # def _extract_prices_data(self) -> Generator[ServicePriceRow]:
-        #     for price in self.prices:
-        #         yield ServicePriceRow(
-        #             pk=price.id,
-        #             service=price.service,
-        #             price=price.price,
-        #             start_date=price.start_date,
-        #             deleted=price.deleted,
-        #             version=price.version,
-        #         )
+        @classmethod
+        def _extract_prices_data(self) -> Iterator[ServicePrice]:
+            for price in self.prices:
+                yield ServicePriceRow(
+                    pk=price.id,
+                    service=price.service,
+                    price=price.price,
+                    start_date=price.start_date,
+                    deleted=price.deleted,
+                    version=price.version,
+                )
 
         @classmethod
         def get_prices(self) -> [ServicePrice]:
@@ -255,7 +255,7 @@ class ServiceCreateSerializer(SeriesCreateSerializerMixin, TemplateSerializer[Se
         if action == 'update':
             instance = super(ServiceCreateSerializer, self).update(instance, data)
 
-        # if get SERVICE we may start to save child records
+        # if success saved SERVICE data we may start to save child records
         try:
             self._update_prices(instance=instance)
         except IntegrityError as exc:

@@ -22,8 +22,9 @@ urlpatterns = [
     # add some filters
     path('auth/', include('apps.users.urls')),
     ### https://djoser.readthedocs.io/en/latest/authentication_backends.html
-    ### Disable Token Based Authentication
-    # path('api/auth/', include('djoser.urls.authtoken')),
+    ### Enable Token Based Authentication
+    path('auth/', include('djoser.urls')),
+    path('auth/', include('djoser.urls.authtoken')),
 
     ### https://djoser.readthedocs.io/en/latest/jwt_endpoints.html
     ### JSON Web Token Authentication
